@@ -129,7 +129,9 @@ class Brotarchitekt_Calculator {
 	protected function compute_time_bucket(): void {
 		$h = (int) $this->input['timeBudget'];
 		if ( $h <= 6 ) {
-			$this->time_bucket = $h <= 4 ? '4-6h' : '6-8h';
+			$this->time_bucket = '4-6h';
+		} elseif ( $h <= 8 ) {
+			$this->time_bucket = '6-8h';
 		} elseif ( $h <= 12 ) {
 			$this->time_bucket = '8-12h';
 		} elseif ( $h <= 24 ) {
@@ -165,9 +167,9 @@ class Brotarchitekt_Calculator {
 			$ta_max += 2;
 		}
 
-		// Dinkel/Urkorn → automatisches Kochstück
+		// Dinkel/Urkorn → automatisches Kochstück (nur Hauptmehle prüfen)
 		$ancient_grains = array( 'spelt', 'emmer', 'einkorn', 'kamut' );
-		$main_flour_ids = array_keys( $this->flour_breakdown );
+		$main_flour_ids = array_filter( (array) $this->input['mainFlours'] );
 		foreach ( $main_flour_ids as $id ) {
 			$g = explode( '_', $id, 2 )[0];
 			if ( in_array( $g, $ancient_grains, true ) ) {
@@ -183,6 +185,19 @@ class Brotarchitekt_Calculator {
 				$this->has_ta_raise_bruehstueck = true;
 				break;
 			}
+		}
+
+		// Brühstück-Verfügbarkeit: nicht bei 4-6h, nicht bei 6-8h + Sauerteig
+		$h = (int) $this->input['timeBudget'];
+		$leavening = $this->input['leavening'];
+		$bruehstueck_available = true;
+		if ( $h <= 6 ) {
+			$bruehstueck_available = false;
+		} elseif ( $h <= 8 && $leavening !== 'yeast' ) {
+			$bruehstueck_available = false;
+		}
+		if ( ! $bruehstueck_available ) {
+			$this->has_ta_raise_bruehstueck = false;
 		}
 
 		// Level 1-3: Kochstück entfällt wenn TA-erhöhender Brühstück
@@ -389,13 +404,9 @@ class Brotarchitekt_Calculator {
 		if ( $this->sourdough_pct > 0 ) {
 			$st_type = Brotarchitekt_Data::get_sourdough_types();
 			$st = isset( $st_type[ $this->input['sourdoughType'] ] ) ? $st_type[ $this->input['sourdoughType'] ] : $st_type['rye'];
-			$st_ta = $st['ta'] / 100;
 			$st_flour_grain = $st['flour_grain'];
-			$st_total = $this->total_flour * ( $this->sourdough_pct / 100 );
-			$st_mehl = $st_total / ( 1 + $st_ta );
-			$st_water = $st_total - $st_mehl;
-			$sourdough_flour = round( $st_mehl, 0 );
-			$sourdough_water = round( $st_water, 0 );
+			$sourdough_flour = round( $this->total_flour * ( $this->sourdough_pct / 100 ), 0 );
+			$sourdough_water = round( $sourdough_flour * ( ( $st['ta'] - 100 ) / 100 ), 0 );
 			$water_main -= $sourdough_water;
 		}
 
@@ -458,21 +469,49 @@ class Brotarchitekt_Calculator {
 		$ta_raise_multi = 5;
 		$ta_raise_pct = $ta_raise_count === 1 ? $ta_raise_single : min( $max_ta_raise, $ta_raise_count * $ta_raise_multi );
 
+		$h = (int) $this->input['timeBudget'];
+		$is_quick = $h <= 6; // 4-6h Bucket = kein Bruehstueck
+
 		foreach ( $extras as $eid ) {
 			if ( ! isset( $extra_data[ $eid ] ) ) {
 				continue;
 			}
 			$e = $extra_data[ $eid ];
+
+			if ( $is_quick && $eid === 'grist' ) {
+				continue;
+			}
+
 			$amount = $e['category'] === 'kern'
 				? round( $this->total_flour * ( $kern_count === 1 ? $first_kern : $max_kern / $kern_count ) / 100, 0 )
 				: round( $this->total_flour * ( $ta_raise_count === 1 ? $ta_raise_single : $ta_raise_multi ) / 100, 0 );
-			$water_extra = round( $amount * $e['ratio'], 0 );
-			$water_main -= $water_extra;
-			$bruehstueck[] = array(
-				'name'   => $e['name'],
-				'amount' => $amount,
-				'water'  => $water_extra,
-			);
+
+			if ( $is_quick ) {
+				if ( $e['category'] === 'kern' ) {
+					$water_extra = 0;
+					$bruehstueck[] = array(
+						'name'   => $e['name'] . ' (trocken einarbeiten)',
+						'amount' => $amount,
+						'water'  => 0,
+					);
+				} else {
+					$water_extra = $amount;
+					$water_main += $water_extra;
+					$bruehstueck[] = array(
+						'name'   => $e['name'],
+						'amount' => $amount,
+						'water'  => 0,
+					);
+				}
+			} else {
+				$water_extra = round( $amount * $e['ratio'], 0 );
+				$water_main -= $water_extra;
+				$bruehstueck[] = array(
+					'name'   => $e['name'],
+					'amount' => $amount,
+					'water'  => $water_extra,
+				);
+			}
 		}
 
 		$water_main = max( 0, round( $water_main, 0 ) );
@@ -539,6 +578,22 @@ class Brotarchitekt_Calculator {
 		return $groups;
 	}
 
+	/** Prüft ob Fermentolyse nötig ist (Dinkel/Urkorn >= 60% oder Vollkorn >= 60%). */
+	protected function needs_fermentolyse(): bool {
+		$ancient_share = 0;
+		$vollkorn_share = 0;
+		foreach ( $this->flour_breakdown as $id => $pct ) {
+			$grain = explode( '_', $id, 2 )[0];
+			if ( in_array( $grain, array( 'spelt', 'emmer', 'einkorn', 'kamut' ), true ) ) {
+				$ancient_share += $pct;
+			}
+			if ( strpos( $id, '_Vollkorn' ) !== false ) {
+				$vollkorn_share += $pct;
+			}
+		}
+		return $ancient_share >= 60 || $vollkorn_share >= 60;
+	}
+
 	/**
 	 * @return list<array{time: int, label: string, duration: int, desc: string, time_formatted: string, duration_formatted: string}>
 	 */
@@ -562,9 +617,14 @@ class Brotarchitekt_Calculator {
 			$t += 240 * 60;
 		}
 
-		// Sauerteig ansetzen
+		$bruehstueck_in_timeline = $time_budget_h >= 8
+			|| ( $time_budget_h > 6 && $leavening === 'yeast' );
+		$extras = (array) $this->input['extras'];
+
+		// Sauerteig ansetzen (+ Brühstück/Kochstück parallel)
 		if ( $leavening !== 'yeast' ) {
-			$st_duration = 360; // 6h default
+			$st_start = $t;
+			$st_duration = 360;
 			if ( $time_budget_h >= 24 ) {
 				$st_duration = 720;
 			} elseif ( $time_budget_h >= 12 ) {
@@ -578,23 +638,48 @@ class Brotarchitekt_Calculator {
 				'duration' => $st_duration,
 				'desc'     => __( 'Sauerteig mit Mehl und Wasser mischen. Reifen lassen bis er deutlich aufgeht.', 'brotarchitekt' ),
 			);
+
+			if ( ! empty( $extras ) && $bruehstueck_in_timeline ) {
+				$steps[] = array(
+					'time'     => $st_start,
+					'label'    => __( 'Brühstück ansetzen', 'brotarchitekt' ),
+					'duration' => 60,
+					'desc'     => __( 'Extras mit kochendem Wasser übergießen, 1 Stunde quellen lassen, dann abkühlen.', 'brotarchitekt' ),
+				);
+			}
+			if ( $this->has_kochstueck ) {
+				$steps[] = array(
+					'time'     => $st_start,
+					'label'    => __( 'Kochstück zubereiten (Tangzhong)', 'brotarchitekt' ),
+					'duration' => 10,
+					'desc'     => __( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen.', 'brotarchitekt' ),
+				);
+			}
+
 			$t += $st_duration * 60;
+		} else {
+			if ( ! empty( $extras ) && $bruehstueck_in_timeline ) {
+				$steps[] = array(
+					'time'     => $t,
+					'label'    => __( 'Brühstück ansetzen', 'brotarchitekt' ),
+					'duration' => 60,
+					'desc'     => __( 'Extras mit kochendem Wasser übergießen, 1 Stunde quellen lassen, dann abkühlen.', 'brotarchitekt' ),
+				);
+				$t += 60 * 60;
+			}
+			if ( $this->has_kochstueck ) {
+				$steps[] = array(
+					'time'     => $t,
+					'label'    => __( 'Kochstück zubereiten (Tangzhong)', 'brotarchitekt' ),
+					'duration' => 10,
+					'desc'     => __( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen.', 'brotarchitekt' ),
+				);
+				$t += 10 * 60;
+			}
 		}
 
-		// Brühstück (parallel möglich)
-		$extras = (array) $this->input['extras'];
-		if ( ! empty( $extras ) && $time_budget_h >= 8 ) {
-			$steps[] = array(
-				'time'     => $t,
-				'label'    => __( 'Brühstück ansetzen', 'brotarchitekt' ),
-				'duration' => 60,
-				'desc'     => __( 'Extras mit kochendem Wasser übergießen, 1 Stunde quellen lassen, dann abkühlen.', 'brotarchitekt' ),
-			);
-			$t += 60 * 60;
-		}
-
-		// Fermentolyse (Dinkel/Urkorn/VK)
-		if ( $this->has_kochstueck || $this->rye_share < 50 ) {
+		// Fermentolyse (Dinkel/Urkorn >= 60% oder Vollkorn >= 60%)
+		if ( $this->needs_fermentolyse() ) {
 			$steps[] = array(
 				'time'     => $t,
 				'label'    => __( 'Fermentolyse (15 min)', 'brotarchitekt' ),
@@ -631,12 +716,48 @@ class Brotarchitekt_Calculator {
 			}
 		}
 
-		// Stockgare
-		$stockgare_min = 90;
+		// Stockgare berechnen
+		$stockgare_min = 90; // Default fuer Hefe
 		if ( $from_fridge ) {
-			$stockgare_min = 8 * 60; // 8h Kühlschrank
-		} elseif ( $this->sourdough_pct > 0 ) {
-			$stockgare_min = 150;
+			$stockgare_min = 8 * 60;
+		} elseif ( $this->rye_share >= 75 ) {
+			if ( $this->sourdough_pct >= 40 ) {
+				$stockgare_min = 30;
+			} elseif ( $this->sourdough_pct >= 25 ) {
+				$stockgare_min = 60;
+			} else {
+				$stockgare_min = 120;
+			}
+		} elseif ( $this->sourdough_pct > 0 && $this->yeast_pct <= 0 && $this->beginner_yeast_pct <= 0 ) {
+			if ( $this->sourdough_pct >= 20 ) {
+				$stockgare_min = 150;
+			} elseif ( $this->sourdough_pct >= 15 ) {
+				$stockgare_min = 210;
+			} elseif ( $this->sourdough_pct >= 10 ) {
+				$stockgare_min = 270;
+			} else {
+				$stockgare_min = 330;
+			}
+		} elseif ( $this->sourdough_pct > 0 && ( $this->yeast_pct > 0 || $this->beginner_yeast_pct > 0 ) ) {
+			if ( $this->sourdough_pct >= 20 ) {
+				$stockgare_min = 120;
+			} elseif ( $this->sourdough_pct >= 15 ) {
+				$stockgare_min = 180;
+			} elseif ( $this->sourdough_pct >= 10 ) {
+				$stockgare_min = 240;
+			} elseif ( $this->sourdough_pct >= 7.5 ) {
+				$stockgare_min = 300;
+			} else {
+				$stockgare_min = 360;
+			}
+		} else {
+			if ( $this->yeast_pct >= 1.0 ) {
+				$stockgare_min = 105;
+			} elseif ( $this->yeast_pct >= 0.3 ) {
+				$stockgare_min = 180;
+			} else {
+				$stockgare_min = 300;
+			}
 		}
 		$steps[] = array(
 			'time'     => $t,
@@ -673,7 +794,14 @@ class Brotarchitekt_Calculator {
 		}
 
 		// Ofen vorheizen
-		$preheat = $this->input['backMethod'] === 'pot' ? 40 : 50;
+		$method = $this->input['backMethod'];
+		if ( $method === 'pot' ) {
+			$preheat = 40;
+		} elseif ( $method === 'steel' ) {
+			$preheat = 35;
+		} else {
+			$preheat = 50; // Pizzastein
+		}
 		$steps[] = array(
 			'time'     => $t,
 			'label'    => __( 'Ofen vorheizen', 'brotarchitekt' ),
@@ -747,11 +875,13 @@ class Brotarchitekt_Calculator {
 				$duration - 25
 			);
 		} else {
+			$schwaden_min = $is_rye ? 5 : 10;
 			$text = sprintf(
-				__( 'Mit Schwaden/Dampf %d°C: 10 Min. Dann Dampf ablassen, %d°C: weitere %d Min.', 'brotarchitekt' ),
+				__( 'Mit Schwaden/Dampf %d°C: %d Min. Dann Dampf ablassen, %d°C: weitere %d Min.', 'brotarchitekt' ),
 				$temp1,
+				$schwaden_min,
 				$temp2,
-				$duration - 10
+				$duration - $schwaden_min
 			);
 		}
 		if ( $this->rye_share >= 75 ) {
