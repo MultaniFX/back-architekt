@@ -300,6 +300,20 @@ final class Brotarchitekt_Plugin {
 					<section class="brotarchitekt-timeline" data-timeline></section>
 					<section class="brotarchitekt-baking" data-baking></section>
 				</div>
+				<section class="brotarchitekt-debug" data-debug hidden>
+					<details>
+						<summary class="brotarchitekt-debug-toggle"><?php esc_html_e( 'Debug: Berechnungsdetails', 'brotarchitekt' ); ?></summary>
+						<div class="brotarchitekt-debug-content">
+							<h4><?php esc_html_e( 'Eingabeparameter', 'brotarchitekt' ); ?></h4>
+							<table class="brotarchitekt-debug-table" data-debug-input></table>
+							<h4><?php esc_html_e( 'Entscheidungsprotokoll', 'brotarchitekt' ); ?></h4>
+							<table class="brotarchitekt-debug-table" data-debug-decisions>
+								<thead><tr><th><?php esc_html_e( 'Modul', 'brotarchitekt' ); ?></th><th><?php esc_html_e( 'Regel', 'brotarchitekt' ); ?></th><th><?php esc_html_e( 'Ergebnis', 'brotarchitekt' ); ?></th></tr></thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</details>
+				</section>
 				<footer class="brotarchitekt-result-footer">
 					<button type="button" class="brotarchitekt-btn brotarchitekt-btn--outline" data-action="new-recipe"><span aria-hidden="true">↻</span> <?php esc_html_e( 'Neues Rezept', 'brotarchitekt' ); ?></button>
 					<button type="button" class="brotarchitekt-btn brotarchitekt-btn--footer-print" data-action="print"><span aria-hidden="true">🖨</span> <?php esc_html_e( 'Drucken', 'brotarchitekt' ); ?></button>

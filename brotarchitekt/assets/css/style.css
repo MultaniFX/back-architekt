@@ -830,3 +830,52 @@
 		max-width: 100%;
 	}
 }
+
+/* ── Debug-Bereich ── */
+.brotarchitekt-debug {
+	margin-top: 2rem;
+	border-top: 2px dashed var(--ba-secondary);
+	padding-top: 1rem;
+}
+.brotarchitekt-debug-toggle {
+	cursor: pointer;
+	font-weight: 600;
+	color: var(--ba-text-muted);
+	font-size: 0.9rem;
+	padding: 0.5rem 0;
+}
+.brotarchitekt-debug-content {
+	margin-top: 1rem;
+}
+.brotarchitekt-debug-content h4 {
+	margin: 1.2rem 0 0.5rem;
+	color: var(--ba-primary);
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+.brotarchitekt-debug-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.8rem;
+	line-height: 1.4;
+}
+.brotarchitekt-debug-table td,
+.brotarchitekt-debug-table th {
+	padding: 4px 8px;
+	border-bottom: 1px solid var(--ba-secondary);
+	text-align: left;
+	vertical-align: top;
+}
+.brotarchitekt-debug-table th {
+	font-weight: 600;
+	color: var(--ba-text-muted);
+	background: var(--ba-bg-card);
+}
+.brotarchitekt-debug-table tr:nth-child(even) {
+	background: var(--ba-bg-card-alt);
+}
+
+@media print {
+	.brotarchitekt-debug { display: none !important; }
+}

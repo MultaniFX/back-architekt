@@ -584,6 +584,32 @@ tr.innerHTML = '<td>' + escapeHtml(item.name) + '</td><td>' + amountStr + '</td>
 
 		// Backen
 		app.querySelector('[data-baking]').innerHTML = '<h3>Backhinweise</h3><p>' + escapeHtml(recipe.baking || '') + '</p>';
+
+		// Debug-Bereich
+		const debugSection = app.querySelector('[data-debug]');
+		if (debugSection && recipe.debug) {
+			debugSection.hidden = false;
+
+			// Input-Zusammenfassung
+			const inputTable = app.querySelector('[data-debug-input]');
+			if (inputTable && recipe.debug.input) {
+				let inputHtml = '';
+				Object.entries(recipe.debug.input).forEach(([key, val]) => {
+					inputHtml += '<tr><td><strong>' + escapeHtml(key) + '</strong></td><td>' + escapeHtml(String(val)) + '</td></tr>';
+				});
+				inputTable.innerHTML = inputHtml;
+			}
+
+			// Entscheidungsprotokoll
+			const decTable = app.querySelector('[data-debug-decisions] tbody');
+			if (decTable && recipe.debug.decisions) {
+				let decHtml = '';
+				recipe.debug.decisions.forEach(d => {
+					decHtml += '<tr><td>' + escapeHtml(d.source) + '</td><td>' + escapeHtml(d.rule) + '</td><td>' + escapeHtml(d.result) + '</td></tr>';
+				});
+				decTable.innerHTML = decHtml;
+			}
+		}
 	}
 
 	// Progress-Dots

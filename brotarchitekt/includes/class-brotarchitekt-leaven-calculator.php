@@ -60,6 +60,8 @@ class Brotarchitekt_Leaven_Calculator {
 		} else {
 			$ctx->time_bucket = '36-48h';
 		}
+
+		$ctx->log( 'Leaven', 'D.1: Time-Bucket', $h . 'h → Bucket ' . $ctx->time_bucket );
 	}
 
 	/**
@@ -79,6 +81,7 @@ class Brotarchitekt_Leaven_Calculator {
 
 		if ( $leavening === 'yeast' ) {
 			$ctx->yeast_pct = self::YEAST_PCT[ $bucket ];
+			$ctx->log( 'Leaven', 'D.1: Nur Hefe', 'Hefe ' . $ctx->yeast_pct . '% (Bucket ' . $bucket . ')' );
 		} elseif ( $leavening === 'sourdough' || $leavening === 'hybrid' ) {
 			$ctx->sourdough_pct = self::ST_PCT[ $bucket ];
 
@@ -86,11 +89,15 @@ class Brotarchitekt_Leaven_Calculator {
 				// D.2: Kombi → beide halbieren
 				$ctx->sourdough_pct /= 2;
 				$ctx->yeast_pct = self::YEAST_PCT[ $bucket ] / 2;
+				$ctx->log( 'Leaven', 'D.2: Hybrid', 'ST ' . $ctx->sourdough_pct . '%, Hefe ' . $ctx->yeast_pct . '% (halbiert)' );
+			} else {
+				$ctx->log( 'Leaven', 'D.1: Nur Sauerteig', 'ST ' . $ctx->sourdough_pct . '% (Bucket ' . $bucket . ')' );
 			}
 
 			// D.3: Anfaenger-Hefe bei reinem Sauerteig
 			if ( $ctx->level <= 2 && $leavening === 'sourdough' ) {
 				$ctx->beginner_yeast_pct = 0.1;
+				$ctx->log( 'Leaven', 'D.3: Anfaenger-Hefe', 'Level ' . $ctx->level . ' + ST pur → +0.1% Hefe' );
 			}
 		}
 	}
@@ -108,6 +115,6 @@ class Brotarchitekt_Leaven_Calculator {
 	private function compute_fridge( Brotarchitekt_Recipe_Context $ctx ): void {
 		$h = (int) $ctx->input['timeBudget'];
 		$ctx->uses_fridge = $h >= 12;
-		// Finale Pruefung (Roggen > 75%) erfolgt in Flour_Calculator nach Roggenanteil-Berechnung
+		$ctx->log( 'Leaven', 'F.6: Kuehlschrank vorlaeufig', $h . 'h >= 12 → ' . ( $ctx->uses_fridge ? 'Ja' : 'Nein' ) . ' (Roggen-Check folgt)' );
 	}
 }

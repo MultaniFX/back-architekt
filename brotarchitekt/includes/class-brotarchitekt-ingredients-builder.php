@@ -49,6 +49,8 @@ class Brotarchitekt_Ingredients_Builder {
 			$sourdough_water = round( $sourdough_flour * ( ( $st['ta'] - 100 ) / 100 ), 0 );
 			$water_main     -= $sourdough_water;
 
+			$ctx->log( 'Ingredients', 'C.1: Sauerteig', 'ST-Mehl ' . $sourdough_flour . 'g (' . $ctx->sourdough_pct . '% von ' . $ctx->total_flour . 'g), ST-Wasser ' . $sourdough_water . 'g (TA ' . $st['ta'] . '), Hauptwasser -' . $sourdough_water . 'g' );
+
 			$st_total_g = $sourdough_flour + $sourdough_water;
 			$groups['sourdough'] = array(
 				'label' => __( 'Sauerteig', 'brotarchitekt' ),
@@ -72,6 +74,8 @@ class Brotarchitekt_Ingredients_Builder {
 			$kochstueck_water = $kochstueck_mehl * 5;
 			$water_main      -= $kochstueck_water;
 			$this->subtract_flour_from_ancient( $flour_amounts, $kochstueck_mehl );
+
+			$ctx->log( 'Ingredients', 'E.1: Kochstueck', 'Mehl ' . $kochstueck_mehl . 'g (4%), Wasser ' . $kochstueck_water . 'g (1:5), Hauptwasser -' . $kochstueck_water . 'g' );
 
 			$groups['kochstueck'] = array(
 				'label' => __( 'Kochstück (Tangzhong)', 'brotarchitekt' ),
@@ -116,6 +120,8 @@ class Brotarchitekt_Ingredients_Builder {
 		$water_main = max( 0, round( $water_main, 0 ) );
 		$yeast_total = $ctx->yeast_pct + $ctx->beginner_yeast_pct;
 		$hefe_g = round( $ctx->total_flour * $yeast_total / 100, 1 );
+
+		$ctx->log( 'Ingredients', 'Hauptteig', 'Restwasser ' . $water_main . 'g, Hefe ' . $hefe_g . 'g (' . $yeast_total . '%), Salz ' . $salt . 'g (2%)' );
 
 		$main_items = array();
 		foreach ( $flour_amounts as $id => $g ) {

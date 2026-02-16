@@ -52,11 +52,17 @@ class Brotarchitekt_Timeline_Builder {
 		// ── Phase 3: Gaerung → Variante je nach Kuehlschrank-Modus ──
 		$stockgare_total = $this->compute_stockgare_minutes();
 
+		$ctx->log( 'Timeline', 'F.3: Stretch & Fold', 'S&F ' . $sf_minutes . ' min verbraucht' );
+		$ctx->log( 'Timeline', 'F.4: Stockgare gesamt', $stockgare_total . ' min (davon S&F ' . $sf_minutes . ' min, Rest ' . max( 0, $stockgare_total - $sf_minutes ) . ' min)' );
+
 		if ( $ctx->uses_fridge && ! $from_fridge ) {
+			$ctx->log( 'Timeline', 'F.6: Gaervariante', 'Kalte Stockgare (Normal) — uses_fridge=true, bakeFromFridge=false' );
 			$this->build_cold_stock( $stockgare_total, $sf_minutes, $time_budget_h );
 		} elseif ( $ctx->uses_fridge && $from_fridge ) {
+			$ctx->log( 'Timeline', 'F.6: Gaervariante', 'Kalte Stueckgare (Direkt) — uses_fridge=true, bakeFromFridge=true' );
 			$this->build_cold_proof( $stockgare_total, $sf_minutes, $time_budget_h );
 		} else {
+			$ctx->log( 'Timeline', 'F.6: Gaervariante', 'Warm only — uses_fridge=false' );
 			$this->build_warm_only( $stockgare_total, $sf_minutes );
 		}
 
@@ -446,7 +452,9 @@ class Brotarchitekt_Timeline_Builder {
 			}
 		}
 
-		return $ancient_share >= 60 || $vollkorn_share >= 60;
+		$needs = $ancient_share >= 60 || $vollkorn_share >= 60;
+		$this->ctx->log( 'Timeline', 'F.1: Fermentolyse', 'Dinkel/Urkorn ' . $ancient_share . '%, Vollkorn ' . $vollkorn_share . '% → ' . ( $needs ? 'Ja' : 'Nein' ) );
+		return $needs;
 	}
 
 	// ══════════════════════════════════════════════════

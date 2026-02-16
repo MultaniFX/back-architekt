@@ -65,6 +65,8 @@ class Brotarchitekt_Flour_Calculator {
 			$grains[ $this->get_grain( $id ) ] = true;
 		}
 		$ctx->is_semola_only = count( $grains ) === 1 && isset( $grains['semola'] );
+
+		$ctx->log( 'Flour', 'B.1: Mehlverteilung', implode( ', ', array_map( fn( $id, $pct ) => $id . ' ' . round( $pct, 1 ) . '%', array_keys( $ctx->flour_breakdown ), $ctx->flour_breakdown ) ) );
 	}
 
 	/**
@@ -77,6 +79,7 @@ class Brotarchitekt_Flour_Calculator {
 				$ctx->rye_share += $pct;
 			}
 		}
+		$ctx->log( 'Flour', 'Roggenanteil', $ctx->rye_share . '%' );
 	}
 
 	/**
@@ -88,6 +91,7 @@ class Brotarchitekt_Flour_Calculator {
 	private function finalize_fridge( Brotarchitekt_Recipe_Context $ctx ): void {
 		if ( $ctx->rye_share >= 75 ) {
 			$ctx->uses_fridge = false;
+			$ctx->log( 'Flour', 'F.6: Roggen >= 75%', 'Kuehlschrank deaktiviert (Roggen ' . $ctx->rye_share . '%)' );
 		}
 	}
 
@@ -113,6 +117,7 @@ class Brotarchitekt_Flour_Calculator {
 			$ctx->has_ta_raise_bruehstueck = false;
 			$ctx->bruehstueck_available = true;
 			$ctx->water_total = $ctx->total_flour * ( ( $ctx->ta - 100 ) / 100 );
+			$ctx->log( 'Flour', 'A.4: Semola-Sonderregel', 'TA fix 172, Wasser ' . round( $ctx->water_total ) . 'g' );
 			return;
 		}
 
@@ -126,6 +131,7 @@ class Brotarchitekt_Flour_Calculator {
 		if ( $vk_share > 70 ) {
 			$ta_base += 2;
 			$ta_max  += 2;
+			$ctx->log( 'Flour', 'A.3: Vollkorn > 70%', 'VK-Anteil ' . $vk_share . '% → TA-Basis +2 → ' . $ta_base );
 		}
 
 		// E.1: Kochstueck nur bei Dinkel/Urkorn als HAUPTMEHL (Fix 14)
@@ -156,12 +162,14 @@ class Brotarchitekt_Flour_Calculator {
 		if ( $h <= 6 ) {
 			// 4-6h: kein Bruehstueck (Regelwerk E.3)
 			$ctx->bruehstueck_available = false;
+			$ctx->log( 'Flour', 'E.3: Bruehstueck-Verfuegbarkeit', $h . 'h <= 6 → kein Bruehstueck' );
 		} elseif ( $h <= 8 && $leavening !== 'yeast' ) {
 			// 6-8h + Sauerteig/Hybrid: kein Bruehstueck (ST braucht die Zeit)
 			$ctx->bruehstueck_available = false;
+			$ctx->log( 'Flour', 'E.3: Bruehstueck-Verfuegbarkeit', $h . 'h + ' . $leavening . ' → kein Bruehstueck (ST braucht Zeit)' );
+		} else {
+			$ctx->log( 'Flour', 'E.3: Bruehstueck-Verfuegbarkeit', $h . 'h + ' . $leavening . ' → Bruehstueck verfuegbar' );
 		}
-		// 6-8h + Hefe: Bruehstueck erlaubt (Fix 5)
-		// 8h+: immer erlaubt
 
 		// TA-Erhoehung nur wenn Bruehstueck verfuegbar (Fix 4)
 		if ( ! $ctx->bruehstueck_available ) {
@@ -185,6 +193,9 @@ class Brotarchitekt_Flour_Calculator {
 
 		// Wassermenge aus TA: Wasser = Mehl * (TA - 100) / 100
 		$ctx->water_total = $ctx->total_flour * ( ( $ctx->ta - 100 ) / 100 );
+
+		$ctx->log( 'Flour', 'A.1: TA-Berechnung', 'Basis ' . $ta_base . ' + Kochstueck ' . ( $ctx->has_kochstueck ? '+5' : '0' ) . ' + Bruehstueck ' . ( $ctx->has_ta_raise_bruehstueck ? '+5' : '0' ) . ' = ' . $ctx->ta . ' (max ' . $ta_max . ')' );
+		$ctx->log( 'Flour', 'Wasser-Berechnung', $ctx->total_flour . 'g * (' . $ctx->ta . ' - 100) / 100 = ' . round( $ctx->water_total ) . 'g' );
 	}
 
 	/** Getreide-Kuerzel aus Mehl-ID extrahieren (wheat_1050 → wheat). */

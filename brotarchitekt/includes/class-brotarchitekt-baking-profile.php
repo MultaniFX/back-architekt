@@ -31,7 +31,9 @@ class Brotarchitekt_Baking_Profile {
 		$method = $ctx->input['backMethod'];
 		$key = isset( $durations[ $method ] ) ? $method : 'pot';
 
-		return $durations[ $key ][ $slot ];
+		$duration = $durations[ $key ][ $slot ];
+		$ctx->log( 'Baking', 'F.8: Backdauer', 'Methode ' . $key . ', Roggen ' . ( $is_rye ? '>=50%' : '<50%' ) . ', Mehl ' . $ctx->total_flour . 'g (Slot ' . $slot . ') → ' . $duration . ' min' );
+		return $duration;
 	}
 
 	/**
@@ -46,11 +48,14 @@ class Brotarchitekt_Baking_Profile {
 		$method = $ctx->input['backMethod'];
 
 		if ( $method === 'pot' ) {
+			$ctx->log( 'Baking', 'F.7: Vorheizzeit', 'Topf → 40 min' );
 			return 40;
 		}
 		if ( $method === 'steel' ) {
+			$ctx->log( 'Baking', 'F.7: Vorheizzeit', 'Backstahl → 35 min' );
 			return 35;
 		}
+		$ctx->log( 'Baking', 'F.7: Vorheizzeit', 'Pizzastein → 50 min' );
 		return 50; // Pizzastein
 	}
 

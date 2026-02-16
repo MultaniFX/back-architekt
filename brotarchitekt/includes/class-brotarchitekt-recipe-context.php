@@ -75,6 +75,73 @@ class Brotarchitekt_Recipe_Context {
 	/** Kuehlschrank wird benutzt (>=12h und Roggen <75%) */
 	public bool $uses_fridge = false;
 
+	/* ── Decision Log (Debug-Ausgabe) ── */
+
+	/** @var list<array{source: string, rule: string, result: string}> */
+	public array $decisions = [];
+
+	/**
+	 * Entscheidung protokollieren.
+	 *
+	 * @param string $source  Modul (z.B. 'Flour', 'Leaven', 'Timeline')
+	 * @param string $rule    Welche Regel greift (z.B. 'Regelwerk A.3: Vollkorn-Zuschlag')
+	 * @param string $result  Was wurde entschieden (z.B. '+2 TA → Basis jetzt 175')
+	 */
+	public function log( string $source, string $rule, string $result ): void {
+		$this->decisions[] = array(
+			'source' => $source,
+			'rule'   => $rule,
+			'result' => $result,
+		);
+	}
+
+	/**
+	 * Debug-Zusammenfassung: Alle Input-Parameter lesbar.
+	 *
+	 * @return array<string, string>
+	 */
+	public function get_input_summary(): array {
+		$leavening_labels = array(
+			'yeast'     => 'Nur Hefe',
+			'sourdough' => 'Nur Sauerteig',
+			'hybrid'    => 'Hybrid (Hefe + Sauerteig)',
+		);
+		$st_labels = array(
+			'rye'           => 'Roggensauer',
+			'wheat'         => 'Weizensauer',
+			'spelt'         => 'Dinkelsauer',
+			'lievito_madre' => 'Lievito Madre',
+		);
+		$method_labels = array(
+			'pot'   => 'Topf',
+			'stone' => 'Pizzastein',
+			'steel' => 'Backstahl',
+		);
+
+		$main = array_filter( (array) $this->input['mainFlours'] );
+		$side = array_filter( (array) $this->input['sideFlours'] );
+		$extras = (array) $this->input['extras'];
+
+		$summary = array();
+		$summary['Level']         = $this->level . ' (' . $this->level_info['label'] . ')';
+		$summary['Zeitbudget']    = $this->input['timeBudget'] . 'h';
+		$summary['Mehlmenge']     = $this->total_flour . 'g';
+		$summary['Hauptmehle']    = ! empty( $main ) ? implode( ', ', array_map( fn( $id ) => Brotarchitekt_Data::get_flour_label( $id ), $main ) ) : '(keine)';
+		$summary['Nebenmehle']    = ! empty( $side ) ? implode( ', ', array_map( fn( $id ) => Brotarchitekt_Data::get_flour_label( $id ), $side ) ) : '(keine)';
+		$summary['Triebmittel']   = $leavening_labels[ $this->input['leavening'] ] ?? $this->input['leavening'];
+		if ( $this->input['leavening'] !== 'yeast' ) {
+			$summary['ST-Typ']    = $st_labels[ $this->input['sourdoughType'] ] ?? $this->input['sourdoughType'];
+			$summary['ST bereit'] = $this->input['sourdoughReady'] === 'yes' ? 'Ja' : 'Nein';
+		}
+		$summary['Extras']        = ! empty( $extras ) ? implode( ', ', $extras ) : '(keine)';
+		$summary['Backmethode']   = $method_labels[ $this->input['backMethod'] ] ?? $this->input['backMethod'];
+		if ( ! empty( $this->input['bakeFromFridge'] ) ) {
+			$summary['Kühlschrank'] = 'Direkt aus Kühlschrank backen';
+		}
+
+		return $summary;
+	}
+
 	public function __construct( array $input ) {
 		$this->input = wp_parse_args( $input, array(
 			'timeBudget'      => 12,

@@ -46,6 +46,10 @@ class Brotarchitekt_Calculator {
 			'timeline'    => $timeline,
 			'baking'      => $baking->get_instructions( $ctx ),
 			'warnings'    => $this->get_warnings( $ctx ),
+			'debug'       => array(
+				'input'     => $ctx->get_input_summary(),
+				'decisions' => $ctx->decisions,
+			),
 		);
 	}
 
