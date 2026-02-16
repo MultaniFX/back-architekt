@@ -20,6 +20,12 @@ define( 'BROTARCHITEKT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BROTARCHITEKT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-data.php';
+require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-recipe-context.php';
+require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-leaven-calculator.php';
+require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-flour-calculator.php';
+require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-baking-profile.php';
+require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-ingredients-builder.php';
+require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-timeline-builder.php';
 require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-calculator.php';
 require_once BROTARCHITEKT_PLUGIN_DIR . 'includes/class-brotarchitekt-rest.php';
 
