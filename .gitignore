@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# IDE / Editor
+.idea/
+.vscode/
+*.sublime-*
+
+# WordPress (falls du das Plugin in einer WP-Installation testest)
+# node_modules/  # nur falls du später Build-Tools nutzt
+
+# Logs & temporäre Dateien
+*.log
+*.tmp
+*.temp
+.cache/
