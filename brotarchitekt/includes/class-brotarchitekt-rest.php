@@ -3,13 +3,15 @@
  * REST API: Rezept berechnen
  */
 
+declare( strict_types=1 );
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 class Brotarchitekt_REST {
 
-	public static function register_routes() {
+	public static function register_routes(): void {
 		register_rest_route( 'brotarchitekt/v1', '/recipe', array(
 			'methods'             => WP_REST_Server::CREATABLE,
 			'callback'            => array( __CLASS__, 'calculate_recipe' ),
@@ -30,7 +32,7 @@ class Brotarchitekt_REST {
 		) );
 	}
 
-	public static function calculate_recipe( WP_REST_Request $request ) {
+	public static function calculate_recipe( WP_REST_Request $request ): WP_REST_Response {
 		$input = array(
 			'timeBudget'      => $request->get_param( 'timeBudget' ),
 			'experienceLevel' => $request->get_param( 'experienceLevel' ),

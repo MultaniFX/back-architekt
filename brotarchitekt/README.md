@@ -23,7 +23,7 @@ Die Seite zeigt dann:
 ## Abhängigkeiten
 
 - WordPress 5.8+
-- PHP 7.4+
+- PHP 8.3+
 - Keine weiteren Plugins nötig
 
 ## Technik

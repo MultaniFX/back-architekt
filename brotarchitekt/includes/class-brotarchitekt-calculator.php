@@ -3,28 +3,40 @@
  * Rezept-Engine: Berechnung von TA, Zutaten, Zeitplan und Backprofil
  */
 
+declare( strict_types=1 );
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 class Brotarchitekt_Calculator {
 
-	protected $input = array();
-	protected $level_info = array();
-	protected $flour_breakdown = array(); // Anteile pro Mehl (grain_type => Prozent)
-	protected $total_flour = 500;
-	protected $ta = 168;
-	protected $water_total = 0;
-	protected $is_semola_only = false;
-	protected $rye_share = 0;
-	protected $has_kochstueck = false;
-	protected $has_ta_raise_bruehstueck = false;
-	protected $time_bucket = '8-12h';
-	protected $sourdough_pct = 0;
-	protected $yeast_pct = 0;
-	protected $beginner_yeast_pct = 0;
+	/** @var array<string, mixed> */
+	protected array $input = [];
 
-	public function calculate( array $input ) {
+	/** @var array<string, mixed> */
+	protected array $level_info = [];
+
+	/** @var array<string, float> Anteile pro Mehl (grain_type => Prozent) */
+	protected array $flour_breakdown = [];
+
+	protected int $total_flour = 500;
+	protected int $ta = 168;
+	protected float $water_total = 0;
+	protected bool $is_semola_only = false;
+	protected float $rye_share = 0;
+	protected bool $has_kochstueck = false;
+	protected bool $has_ta_raise_bruehstueck = false;
+	protected string $time_bucket = '8-12h';
+	protected float $sourdough_pct = 0;
+	protected float $yeast_pct = 0;
+	protected float $beginner_yeast_pct = 0;
+
+	/**
+	 * @param array<string, mixed> $input
+	 * @return array<string, mixed>
+	 */
+	public function calculate( array $input ): array {
 		$this->input = wp_parse_args( $input, array(
 			'timeBudget'      => 12,
 			'experienceLevel' => 2,
@@ -41,7 +53,7 @@ class Brotarchitekt_Calculator {
 
 		$this->total_flour = max( 250, min( 1000, (int) $this->input['flourAmount'] ) );
 		if ( $this->total_flour % 50 !== 0 ) {
-			$this->total_flour = round( $this->total_flour / 50 ) * 50;
+			$this->total_flour = (int) ( round( $this->total_flour / 50 ) * 50 );
 		}
 
 		$this->level_info = Brotarchitekt_Data::get_level_info();
@@ -70,7 +82,7 @@ class Brotarchitekt_Calculator {
 		return $recipe;
 	}
 
-	protected function compute_flour_breakdown() {
+	protected function compute_flour_breakdown(): void {
 		$main = array_filter( (array) $this->input['mainFlours'] );
 		$side = array_filter( (array) $this->input['sideFlours'] );
 		if ( empty( $main ) ) {
@@ -105,7 +117,7 @@ class Brotarchitekt_Calculator {
 		$this->is_semola_only = count( $grains ) === 1 && isset( $grains['semola'] );
 	}
 
-	protected function compute_rye_share() {
+	protected function compute_rye_share(): void {
 		$this->rye_share = 0;
 		foreach ( $this->flour_breakdown as $id => $pct ) {
 			if ( strpos( $id, 'rye' ) === 0 ) {
@@ -114,7 +126,7 @@ class Brotarchitekt_Calculator {
 		}
 	}
 
-	protected function compute_time_bucket() {
+	protected function compute_time_bucket(): void {
 		$h = (int) $this->input['timeBudget'];
 		if ( $h <= 6 ) {
 			$this->time_bucket = $h <= 4 ? '4-6h' : '6-8h';
@@ -129,7 +141,7 @@ class Brotarchitekt_Calculator {
 		}
 	}
 
-	protected function compute_ta() {
+	protected function compute_ta(): void {
 		$ta_base = $this->level_info['ta_base'];
 		$ta_max  = $this->level_info['ta_max'];
 
@@ -190,7 +202,7 @@ class Brotarchitekt_Calculator {
 		$this->water_total = $this->total_flour * ( ( $this->ta - 100 ) / 100 );
 	}
 
-	protected function compute_triebmittel() {
+	protected function compute_triebmittel(): void {
 		$leavening = $this->input['leavening'];
 		$level = (int) $this->input['experienceLevel'];
 
@@ -229,7 +241,7 @@ class Brotarchitekt_Calculator {
 		}
 	}
 
-	protected function get_recipe_name() {
+	protected function get_recipe_name(): string {
 		$h = (int) $this->input['timeBudget'];
 		$speed = '';
 		if ( $h < 8 ) {
@@ -270,7 +282,10 @@ class Brotarchitekt_Calculator {
 		return $name;
 	}
 
-	protected function get_recipe_meta() {
+	/**
+	 * @return array<string, mixed>
+	 */
+	protected function get_recipe_meta(): array {
 		$level = (int) $this->input['experienceLevel'];
 		$level_info = Brotarchitekt_Data::get_level_info();
 		$label = isset( $level_info[ $level ] ) ? $level_info[ $level ]['label'] : '';
@@ -289,14 +304,20 @@ class Brotarchitekt_Calculator {
 		);
 	}
 
-	protected function get_recipe_teaser() {
+	/**
+	 * @return array<string, int|float>
+	 */
+	protected function get_recipe_teaser(): array {
 		return array(
 			'ta'     => $this->ta,
 			'weight' => round( $this->total_flour + $this->water_total + $this->total_flour * 0.02 ),
 		);
 	}
 
-	protected function get_ingredients() {
+	/**
+	 * @return array<string, array{label: string, items: array<int, array{name: string, amount: int|float, unit: string}>}>
+	 */
+	protected function get_ingredients(): array {
 		$flour_amounts = array();
 		foreach ( $this->flour_breakdown as $id => $pct ) {
 			$g = round( $this->total_flour * $pct / 100, 0 );
@@ -431,7 +452,10 @@ class Brotarchitekt_Calculator {
 		return $groups;
 	}
 
-	protected function get_timeline() {
+	/**
+	 * @return list<array{time: int, label: string, duration: int, desc: string, time_formatted: string, duration_formatted: string}>
+	 */
+	protected function get_timeline(): array {
 		$steps = array();
 		$now = current_time( 'timestamp' );
 		$t = $now;
@@ -600,7 +624,7 @@ class Brotarchitekt_Calculator {
 		return $steps;
 	}
 
-	protected function get_bake_duration() {
+	protected function get_bake_duration(): int {
 		$method = $this->input['backMethod'];
 		$is_rye = $this->rye_share >= 50;
 		$w = $this->total_flour;
@@ -620,7 +644,7 @@ class Brotarchitekt_Calculator {
 		return isset( $durations[ $key ][ $slot ] ) ? $durations[ $key ][ $slot ] : 45;
 	}
 
-	protected function get_baking_instructions() {
+	protected function get_baking_instructions(): string {
 		$method = $this->input['backMethod'];
 		$is_rye = $this->rye_share >= 50;
 		$temp1 = $is_rye ? 230 : 250;
@@ -649,7 +673,10 @@ class Brotarchitekt_Calculator {
 		return $text;
 	}
 
-	protected function get_warnings() {
+	/**
+	 * @return list<string>
+	 */
+	protected function get_warnings(): array {
 		$w = array();
 		if ( (int) $this->input['timeBudget'] < 8 && $this->input['leavening'] !== 'yeast' ) {
 			$w[] = __( 'Dein Sauerteig muss bereits einsatzbereit sein.', 'brotarchitekt' );

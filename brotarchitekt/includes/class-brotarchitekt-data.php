@@ -3,6 +3,8 @@
  * Daten für den Brotarchitekt: Mehle, Extras, Level-Infos
  */
 
+declare( strict_types=1 );
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -11,8 +13,10 @@ class Brotarchitekt_Data {
 
 	/**
 	 * Mehlsorten nach Getreide, mit Level-Freischaltung
+	 *
+	 * @return array<string, array{name: string, types: list<string>, category: string, level_main: int, level_side: int}>
 	 */
-	public static function get_flours() {
+	public static function get_flours(): array {
 		return array(
 			'wheat' => array(
 				'name'   => 'Weizen',
@@ -68,8 +72,10 @@ class Brotarchitekt_Data {
 
 	/**
 	 * Extras: Koerner (1:0,75, TA nicht) und TA-erhoehend (1:4, +5 TA)
+	 *
+	 * @return array<string, array{name: string, ratio: float, ta_raise: bool, category: string}>
 	 */
-	public static function get_extras() {
+	public static function get_extras(): array {
 		return array(
 			'sunflower' => array(
 				'name'   => 'Sonnenblumenkerne',
@@ -118,8 +124,10 @@ class Brotarchitekt_Data {
 
 	/**
 	 * Level-Infos: TA-Basis, Max-TA, Anzahl Haupt-/Nebenmehle, Urkorn, max Extras
+	 *
+	 * @return array<int, array{label: string, main_flours: int, side_flours: int, ancient_main: bool, ancient_side: bool, ta_base: int, ta_max: int, max_extras: int, recommended_back: string|null}>
 	 */
-	public static function get_level_info() {
+	public static function get_level_info(): array {
 		return array(
 			1 => array(
 				'label'       => 'Einsteiger',
@@ -181,8 +189,10 @@ class Brotarchitekt_Data {
 
 	/**
 	 * Sauerteig-Typen mit TA
+	 *
+	 * @return array<string, array{name: string, ta: int, flour_grain: string}>
 	 */
-	public static function get_sourdough_types() {
+	public static function get_sourdough_types(): array {
 		return array(
 			'rye'           => array( 'name' => 'Roggensauer', 'ta' => 200, 'flour_grain' => 'rye' ),
 			'wheat'         => array( 'name' => 'Weizensauer', 'ta' => 200, 'flour_grain' => 'wheat' ),
@@ -193,8 +203,10 @@ class Brotarchitekt_Data {
 
 	/**
 	 * Für JS: Mehle als gruppierte Optionen (key = grain_type, value = label)
+	 *
+	 * @return list<array{id: string, grain: string, type: string, label: string, category: string, level_main: int, level_side: int}>
 	 */
-	public static function get_flours_for_js() {
+	public static function get_flours_for_js(): array {
 		$flours = self::get_flours();
 		$out = array();
 		foreach ( $flours as $grain_key => $data ) {
@@ -214,7 +226,10 @@ class Brotarchitekt_Data {
 		return $out;
 	}
 
-	public static function get_extras_for_js() {
+	/**
+	 * @return list<array{id: string, name: string, ratio: float, ta_raise: bool, category: string}>
+	 */
+	public static function get_extras_for_js(): array {
 		$extras = self::get_extras();
 		$out = array();
 		foreach ( $extras as $key => $data ) {
@@ -229,15 +244,15 @@ class Brotarchitekt_Data {
 		return $out;
 	}
 
-	public static function get_level_info_for_js() {
+	public static function get_level_info_for_js(): array {
 		return self::get_level_info();
 	}
 
 	/**
 	 * Label für eine Mehl-ID (z. B. wheat_1050)
 	 */
-	public static function get_flour_label( $id ) {
-		if ( ! $id ) {
+	public static function get_flour_label( ?string $id ): string {
+		if ( $id === null || $id === '' ) {
 			return '';
 		}
 		foreach ( self::get_flours_for_js() as $f ) {

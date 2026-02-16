@@ -8,7 +8,7 @@
  * Text Domain: brotarchitekt
  * Domain Path: /languages
  * Requires at least: 5.8
- * Requires PHP: 7.4
+ * Requires PHP: 8.3
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

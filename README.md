@@ -18,6 +18,6 @@ Details siehe [brotarchitekt/README.md](brotarchitekt/README.md).
 
 ## Technik
 
-- PHP 7.4+, WordPress 5.8+
+- PHP 8.3+, WordPress 5.8+
 - Vanilla JS (Wizard), REST API für Rezeptberechnung
 - Responsives CSS (Erdtöne, Karten-Layout)
