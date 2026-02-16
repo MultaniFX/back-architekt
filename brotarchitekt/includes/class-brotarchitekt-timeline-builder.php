@@ -34,11 +34,13 @@ class Brotarchitekt_Timeline_Builder {
 		$this->ctx    = $ctx;
 		$this->baking = new Brotarchitekt_Baking_Profile();
 		$this->steps  = array();
-		$this->t      = current_time( 'timestamp' );
+		$this->t      = 0; // Relative Zeit: Start bei 0:00
 
 		$leavening     = $ctx->input['leavening'];
 		$from_fridge   = ! empty( $ctx->input['bakeFromFridge'] );
 		$time_budget_h = (int) $ctx->input['timeBudget'];
+
+		$ctx->log( 'Timeline', 'Zeitbudget', $time_budget_h . 'h gesamt (inkl. ST-Vorbereitung)' );
 
 		// ── Phase 1: Vorbereitungen (ST, Bruehstueck, Kochstueck) ──
 		$this->add_sourdough_steps();
@@ -71,7 +73,9 @@ class Brotarchitekt_Timeline_Builder {
 
 		// Zeitformatierung
 		foreach ( $this->steps as &$s ) {
-			$s['time_formatted']     = date_i18n( 'H:i', $s['time'] );
+			$elapsed_h               = floor( $s['time'] / 3600 );
+			$elapsed_m               = floor( ( $s['time'] % 3600 ) / 60 );
+			$s['time_formatted']     = sprintf( '%d:%02d', $elapsed_h, $elapsed_m );
 			$s['duration_formatted'] = $s['duration'] >= 60
 				? ( floor( $s['duration'] / 60 ) . ' h ' . ( $s['duration'] % 60 ? $s['duration'] % 60 . ' min' : '' ) )
 				: ( $s['duration'] . ' min' );
@@ -96,8 +100,14 @@ class Brotarchitekt_Timeline_Builder {
 			return;
 		}
 
+		// C.6: ST bereits fertig → Auffrischung UND Ansetzen entfallen
+		if ( $st_ready ) {
+			$ctx->log( 'Timeline', 'C.6: ST bereit', 'Auffrischung + Ansetzen entfallen' );
+			return;
+		}
+
 		// Auffrischung (Regelwerk C.6: <8h muss bereit sein, 8-12h schnelle Auffrischung)
-		if ( ! $st_ready && $time_budget_h >= 8 ) {
+		if ( $time_budget_h >= 8 ) {
 			$this->step(
 				__( 'Sauerteig auffrischen', 'brotarchitekt' ),
 				240,
@@ -124,36 +134,66 @@ class Brotarchitekt_Timeline_Builder {
 		);
 	}
 
-	/** Bruehstueck + Kochstueck (parallel zum ST, Fix 6+7). */
+	/** Bruehstueck + Kochstueck (parallel zum ST oder eigener Schritt). */
 	private function add_parallel_steps(): void {
-		$ctx           = $this->ctx;
-		$leavening     = $ctx->input['leavening'];
-		$extras        = (array) $ctx->input['extras'];
-		$time_budget_h = (int) $ctx->input['timeBudget'];
+		$ctx       = $this->ctx;
+		$leavening = $ctx->input['leavening'];
+		$extras    = (array) $ctx->input['extras'];
 
-		$bruehstueck_in_timeline = $ctx->bruehstueck_available;
+		// ST-Schritt existiert nur wenn Sauerteig UND nicht ready
+		$has_st_step = $leavening !== 'yeast'
+		               && $ctx->input['sourdoughReady'] !== 'yes';
 
-		// Bruehstueck (parallel zum ST oder eigener Schritt bei Hefe)
-		if ( ! empty( $extras ) && $bruehstueck_in_timeline ) {
-			$this->step_parallel(
-				__( 'Brühstück ansetzen', 'brotarchitekt' ),
-				60,
-				__( 'Extras mit kochendem Wasser übergießen, 1 Stunde quellen lassen, dann abkühlen.', 'brotarchitekt' )
-			);
+		$has_vorteig = false;
+
+		// Bruehstueck
+		if ( ! empty( $extras ) && $ctx->bruehstueck_available ) {
+			$has_vorteig = true;
+			if ( $has_st_step ) {
+				$this->step_parallel(
+					__( 'Brühstück ansetzen', 'brotarchitekt' ),
+					120,
+					__( 'Extras mit kochendem Wasser übergießen, quellen und abkühlen lassen (mind. 2 Stunden).', 'brotarchitekt' )
+				);
+			} else {
+				$this->step(
+					__( 'Brühstück ansetzen', 'brotarchitekt' ),
+					120,
+					__( 'Extras mit kochendem Wasser übergießen, quellen und abkühlen lassen (mind. 2 Stunden).', 'brotarchitekt' )
+				);
+			}
 		}
 
-		// Kochstueck (parallel)
+		// Kochstueck
 		if ( $ctx->has_kochstueck ) {
-			$this->step_parallel(
-				__( 'Kochstück zubereiten (Tangzhong)', 'brotarchitekt' ),
-				10,
-				__( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen.', 'brotarchitekt' )
-			);
+			if ( $has_st_step ) {
+				$this->step_parallel(
+					__( 'Kochstück zubereiten (Tangzhong)', 'brotarchitekt' ),
+					120,
+					__( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen (mind. 2 Stunden gesamt).', 'brotarchitekt' )
+				);
+			} elseif ( ! $has_vorteig ) {
+				// Nur Kochstueck, kein Bruehstueck → eigener Schritt
+				$this->step(
+					__( 'Kochstück zubereiten (Tangzhong)', 'brotarchitekt' ),
+					120,
+					__( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen (mind. 2 Stunden gesamt).', 'brotarchitekt' )
+				);
+			} else {
+				// Beides vorhanden, Bruehstueck-Schritt hat schon 120 min, Kochstueck parallel dazu
+				$this->step_parallel(
+					__( 'Kochstück zubereiten (Tangzhong)', 'brotarchitekt' ),
+					120,
+					__( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen (mind. 2 Stunden gesamt).', 'brotarchitekt' )
+				);
+			}
+			$has_vorteig = true;
 		}
 
-		// Jetzt die Vorbereitungszeit vorruecken
-		// Finde die laengste parallele Phase und ruecke $t entsprechend vor
-		$this->advance_past_parallel();
+		// Vorbereitungszeit vorruecken
+		if ( $has_st_step ) {
+			$this->advance_past_parallel();
+		}
 	}
 
 	/** Fermentolyse (Fix 3: nur bei Dinkel/Urkorn >= 60% oder Vollkorn >= 60%). */

@@ -30,7 +30,10 @@ class Brotarchitekt_Ingredients_Builder {
 			}
 		}
 
-		$salt       = round( $ctx->total_flour * 0.02, 0 );
+		$extras_weight = $this->get_extras_weight( $ctx );
+		$salt_base     = $ctx->total_flour + $extras_weight;
+		$salt          = round( $salt_base * 0.02, 0 );
+		$ctx->log( 'Ingredients', 'Salz', 'Salz: 2% von (' . $ctx->total_flour . 'g Mehl + ' . $extras_weight . 'g Extras = ' . $salt_base . 'g) = ' . $salt . 'g' );
 		$water_main = $ctx->water_total;
 		$groups     = array();
 
