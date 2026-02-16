@@ -291,10 +291,39 @@ class Brotarchitekt_Timeline_Builder {
 	 * Regelwerk F.4 (Kalte Stockgare) + F.6 (Kuehlschrank-Logik)
 	 */
 	private function build_cold_stock( int $stockgare_total, int $sf_minutes, int $time_budget_h ): void {
-		// Anspringzeit (warm, vor dem Kuehlschrank, Regelwerk F.4)
-		$anspring_min = $this->compute_anspringzeit( $time_budget_h );
-		$anspring_rest = max( 0, $anspring_min - $sf_minutes );
+		$ctx = $this->ctx;
 
+		// ── Rückwärtsrechnung: verfügbare Zeit für kalte Stockgare ──
+		$elapsed_min    = (int) ( $this->t / 60 );
+		$formen_min     = 10;
+		$akklim_min     = 30;  // Akklimatisierung nach Kühlschrank
+		$stueckgare_min = 120; // mind. 2h Stückgare nach Kälte
+		$preheat_min    = $this->baking->get_preheat( $ctx );
+		$bake_min       = $this->baking->get_duration( $ctx );
+
+		// Anspringzeit hängt von Kaltdauer ab → erst grob schätzen, dann iterieren
+		$budget_min     = $time_budget_h * 60;
+		$fixed_after    = $formen_min + $akklim_min + $stueckgare_min + $preheat_min + $bake_min;
+
+		// Erst Anspringzeit ohne S&F-Abzug für Kaltzeit-Schätzung
+		$cold_estimate  = $budget_min - $elapsed_min - $fixed_after - 120; // 120 min Anspring-Schätzung
+		$cold_hours_raw = max( 8, (int) floor( $cold_estimate / 60 ) );
+
+		$anspring_min   = $this->compute_anspringzeit( $time_budget_h, $cold_hours_raw );
+		$anspring_rest  = max( 0, $anspring_min - $sf_minutes );
+
+		// Verfügbar für kalte Stockgare = Budget − bisherige Zeit − Anspringen − feste Schritte danach
+		$available_for_cold = $budget_min - $elapsed_min - $anspring_rest - $fixed_after;
+		$cold_hours         = max( 8, (int) floor( $available_for_cold / 60 ) );
+
+		$ctx->log( 'Timeline', 'F.6: Kalte Stockgare (Rückwärtsrechnung)',
+			'Budget ' . $budget_min . ' min − bisher ' . $elapsed_min . ' min − Anspringen ' . $anspring_rest
+			. ' min − Formen ' . $formen_min . ' min − Akklim. ' . $akklim_min . ' min − Stückgare ' . $stueckgare_min
+			. ' min − Vorheizen ' . $preheat_min . ' min − Backen ' . $bake_min . ' min = '
+			. $available_for_cold . ' min verfügbar → ' . $cold_hours . 'h kalte Stockgare'
+		);
+
+		// Anspringzeit (warm, vor dem Kühlschrank)
 		if ( $anspring_rest > 0 ) {
 			$this->step(
 				__( 'Anspringzeit (warm)', 'brotarchitekt' ),
@@ -304,21 +333,27 @@ class Brotarchitekt_Timeline_Builder {
 		}
 
 		// Kalte Stockgare
-		$cold_hours = max( 8, $time_budget_h - 4 );
 		$this->step(
 			__( 'Stockgare im Kühlschrank', 'brotarchitekt' ),
 			$cold_hours * 60,
 			sprintf( __( 'Teig abgedeckt %d Stunden im Kühlschrank (4–5°C) gehen lassen.', 'brotarchitekt' ), $cold_hours )
 		);
 
+		// Akklimatisierung (nach Kühlschrank, vor Formen)
+		$this->step(
+			__( 'Akklimatisieren', 'brotarchitekt' ),
+			$akklim_min,
+			__( 'Teig aus dem Kühlschrank nehmen und 30 Minuten bei Raumtemperatur akklimatisieren lassen.', 'brotarchitekt' )
+		);
+
 		// Formen
 		$this->add_forming();
 
-		// Warme Stueckgare (90 min, Regelwerk F.5)
+		// Warme Stückgare (mind. 2h nach Kälte, Regelwerk F.5)
 		$this->step(
 			__( 'Stückgare (warm)', 'brotarchitekt' ),
-			90,
-			__( 'Geformtes Brot abdecken und bei Raumtemperatur gehen lassen. Fingertest: Delle soll langsam zurückgehen.', 'brotarchitekt' )
+			$stueckgare_min,
+			__( 'Geformtes Brot abdecken und mind. 2 Stunden bei Raumtemperatur gehen lassen. Fingertest: Delle soll langsam zurückgehen.', 'brotarchitekt' )
 		);
 	}
 
@@ -400,60 +435,75 @@ class Brotarchitekt_Timeline_Builder {
 	 */
 	private function compute_stockgare_minutes(): int {
 		$ctx = $this->ctx;
+		$result = 0;
+		$rule   = '';
 
 		if ( $ctx->rye_share >= 75 ) {
 			// Regelwerk C.5 / F.4: Roggen-Stockgare nach ST-Anteil
 			if ( $ctx->sourdough_pct >= 40 ) {
-				return 30;
+				$result = 30;
+				$rule = 'Roggen ≥75%, ST ≥40% → 30 min';
+			} elseif ( $ctx->sourdough_pct >= 25 ) {
+				$result = 60;
+				$rule = 'Roggen ≥75%, ST ≥25% → 60 min';
+			} else {
+				$result = 120;
+				$rule = 'Roggen ≥75%, ST <25% → 120 min';
 			}
-			if ( $ctx->sourdough_pct >= 25 ) {
-				return 60;
+		} else {
+			$has_st   = $ctx->sourdough_pct > 0;
+			$has_hefe = $ctx->yeast_pct > 0 || $ctx->beginner_yeast_pct > 0;
+
+			if ( $has_st && ! $has_hefe ) {
+				// Reiner Sauerteig (F.4 "Mit Sauerteig pur")
+				if ( $ctx->sourdough_pct >= 20 ) {
+					$result = 150;
+					$rule = 'ST pur ≥20% → 150 min';
+				} elseif ( $ctx->sourdough_pct >= 15 ) {
+					$result = 210;
+					$rule = 'ST pur ≥15% → 210 min';
+				} elseif ( $ctx->sourdough_pct >= 10 ) {
+					$result = 270;
+					$rule = 'ST pur ≥10% → 270 min';
+				} else {
+					$result = 330;
+					$rule = 'ST pur <10% → 330 min';
+				}
+			} elseif ( $has_st && $has_hefe ) {
+				// Hybrid oder Anfaenger-Hefe (F.4 "Mit ST + minimaler Hefe")
+				if ( $ctx->sourdough_pct >= 20 ) {
+					$result = 120;
+					$rule = 'ST+Hefe ≥20% → 120 min';
+				} elseif ( $ctx->sourdough_pct >= 15 ) {
+					$result = 180;
+					$rule = 'ST+Hefe ≥15% → 180 min';
+				} elseif ( $ctx->sourdough_pct >= 10 ) {
+					$result = 240;
+					$rule = 'ST+Hefe ≥10% → 240 min';
+				} elseif ( $ctx->sourdough_pct >= 7.5 ) {
+					$result = 300;
+					$rule = 'ST+Hefe ≥7.5% → 300 min';
+				} else {
+					$result = 360;
+					$rule = 'ST+Hefe <7.5% → 360 min';
+				}
+			} else {
+				// Nur Hefe (F.4 "Mit Hefe")
+				if ( $ctx->yeast_pct >= 1.0 ) {
+					$result = 105;
+					$rule = 'Hefe ≥1% → 105 min';
+				} elseif ( $ctx->yeast_pct >= 0.3 ) {
+					$result = 180;
+					$rule = 'Hefe ≥0.3% → 180 min';
+				} else {
+					$result = 300;
+					$rule = 'Hefe <0.3% → 300 min';
+				}
 			}
-			return 120;
 		}
 
-		$has_st   = $ctx->sourdough_pct > 0;
-		$has_hefe = $ctx->yeast_pct > 0 || $ctx->beginner_yeast_pct > 0;
-
-		if ( $has_st && ! $has_hefe ) {
-			// Reiner Sauerteig (F.4 "Mit Sauerteig pur")
-			if ( $ctx->sourdough_pct >= 20 ) {
-				return 150;
-			}
-			if ( $ctx->sourdough_pct >= 15 ) {
-				return 210;
-			}
-			if ( $ctx->sourdough_pct >= 10 ) {
-				return 270;
-			}
-			return 330;
-		}
-
-		if ( $has_st && $has_hefe ) {
-			// Hybrid oder Anfaenger-Hefe (F.4 "Mit ST + minimaler Hefe")
-			if ( $ctx->sourdough_pct >= 20 ) {
-				return 120;
-			}
-			if ( $ctx->sourdough_pct >= 15 ) {
-				return 180;
-			}
-			if ( $ctx->sourdough_pct >= 10 ) {
-				return 240;
-			}
-			if ( $ctx->sourdough_pct >= 7.5 ) {
-				return 300;
-			}
-			return 360;
-		}
-
-		// Nur Hefe (F.4 "Mit Hefe")
-		if ( $ctx->yeast_pct >= 1.0 ) {
-			return 105;
-		}
-		if ( $ctx->yeast_pct >= 0.3 ) {
-			return 180;
-		}
-		return 300;
+		$ctx->log( 'Timeline', 'F.4: Stockgare-Regel', $rule . ' (ST ' . $ctx->sourdough_pct . '%, Hefe ' . $ctx->yeast_pct . '%, Roggen ' . $ctx->rye_share . '%)' );
+		return $result;
 	}
 
 	/**
@@ -461,16 +511,20 @@ class Brotarchitekt_Timeline_Builder {
 	 *
 	 * Regelwerk F.4: 8h kalt → 120 min, 12h kalt → 90 min, 16h+ kalt → 60 min.
 	 */
-	private function compute_anspringzeit( int $time_budget_h ): int {
-		$fridge_hours = max( 8, $time_budget_h - 4 );
+	private function compute_anspringzeit( int $time_budget_h, int $cold_hours ): int {
+		if ( $cold_hours >= 16 ) {
+			$result = 60;
+			$rule = '≥16h kalt → 60 min';
+		} elseif ( $cold_hours >= 12 ) {
+			$result = 90;
+			$rule = '≥12h kalt → 90 min';
+		} else {
+			$result = 120;
+			$rule = '<12h kalt → 120 min';
+		}
 
-		if ( $fridge_hours >= 16 ) {
-			return 60;
-		}
-		if ( $fridge_hours >= 12 ) {
-			return 90;
-		}
-		return 120;
+		$this->ctx->log( 'Timeline', 'F.4: Anspringzeit', $rule . ' (Kühlschrank ' . $cold_hours . 'h, Budget ' . $time_budget_h . 'h)' );
+		return $result;
 	}
 
 	/**

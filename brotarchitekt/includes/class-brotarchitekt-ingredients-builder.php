@@ -185,6 +185,12 @@ class Brotarchitekt_Ingredients_Builder {
 			$weight += $ctx->total_flour * $pct / 100;
 		}
 
+		// Gesamte Zugaben auf max. 30% vom Mehl begrenzen
+		$max_weight = $ctx->total_flour * 0.30;
+		if ( $weight > $max_weight ) {
+			$weight = $max_weight;
+		}
+
 		return $weight;
 	}
 
@@ -225,6 +231,27 @@ class Brotarchitekt_Ingredients_Builder {
 		$h             = (int) $ctx->input['timeBudget'];
 		$is_quick      = $h <= 6; // 4-6h Bucket
 
+		// Gesamt-% aller Extras berechnen und auf 30% deckeln
+		$total_pct = 0;
+		foreach ( $extras as $eid ) {
+			if ( ! isset( $extra_data[ $eid ] ) ) {
+				continue;
+			}
+			if ( $is_quick && $eid === 'grist' ) {
+				continue;
+			}
+			$e = $extra_data[ $eid ];
+			if ( $e['category'] === 'kern' ) {
+				$total_pct += $kern_count === 1 ? 15 : $max_kern / $kern_count;
+			} else {
+				$total_pct += $ta_raise_count === 1 ? 10 : 5;
+			}
+		}
+		$extras_scale = $total_pct > 30 ? 30 / $total_pct : 1.0;
+		if ( $extras_scale < 1.0 ) {
+			$ctx->log( 'Ingredients', 'Extras-Cap', 'Zugaben ' . round( $total_pct, 1 ) . '% > 30% → auf 30% skaliert (Faktor ' . round( $extras_scale, 3 ) . ')' );
+		}
+
 		foreach ( $extras as $eid ) {
 			if ( ! isset( $extra_data[ $eid ] ) ) {
 				continue;
@@ -236,12 +263,13 @@ class Brotarchitekt_Ingredients_Builder {
 				continue;
 			}
 
-			// Menge berechnen (Regelwerk E.4)
+			// Menge berechnen (Regelwerk E.4), skaliert auf max 30% gesamt
 			if ( $e['category'] === 'kern' ) {
 				$pct = $kern_count === 1 ? 15 : $max_kern / $kern_count;
 			} else {
 				$pct = $ta_raise_count === 1 ? 10 : 5;
 			}
+			$pct    *= $extras_scale;
 			$amount = round( $ctx->total_flour * $pct / 100, 0 );
 
 			if ( $is_quick ) {
