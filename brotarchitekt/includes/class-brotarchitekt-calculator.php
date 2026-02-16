@@ -28,6 +28,7 @@ class Brotarchitekt_Calculator {
 	protected bool $has_kochstueck = false;
 	protected bool $has_ta_raise_bruehstueck = false;
 	protected string $time_bucket = '8-12h';
+	protected bool $uses_fridge = false;
 	protected float $sourdough_pct = 0;
 	protected float $yeast_pct = 0;
 	protected float $beginner_yeast_pct = 0;
@@ -68,6 +69,9 @@ class Brotarchitekt_Calculator {
 		$this->compute_ta();
 		$this->compute_triebmittel();
 		$this->compute_time_bucket();
+
+		$h = (int) $this->input['timeBudget'];
+		$this->uses_fridge = $h >= 12 && $this->rye_share < 75;
 
 		$recipe = array(
 			'name'        => $this->get_recipe_name(),
@@ -315,7 +319,7 @@ class Brotarchitekt_Calculator {
 			'time'     => $this->input['timeBudget'] . ' h',
 			'back'     => isset( $back_labels[ $back ] ) ? $back_labels[ $back ] : $back,
 			'ta'       => $this->ta,
-			'weight'   => round( $this->total_flour + $this->water_total + $this->total_flour * 0.02 ), // grob
+			'weight'   => round( $this->total_flour + $this->water_total + $this->total_flour * 0.02 + $this->get_extras_weight() ),
 		);
 	}
 
@@ -325,8 +329,44 @@ class Brotarchitekt_Calculator {
 	protected function get_recipe_teaser(): array {
 		return array(
 			'ta'     => $this->ta,
-			'weight' => round( $this->total_flour + $this->water_total + $this->total_flour * 0.02 ),
+			'weight' => round( $this->total_flour + $this->water_total + $this->total_flour * 0.02 + $this->get_extras_weight() ),
 		);
+	}
+
+	/** Gesamtgewicht aller Extras (ohne Brühstück-Wasser, das ist bereits in water_total). */
+	protected function get_extras_weight(): float {
+		$extras = (array) $this->input['extras'];
+		$extra_data = Brotarchitekt_Data::get_extras();
+		$level = (int) $this->input['experienceLevel'];
+
+		$kern_count = 0;
+		$ta_raise_count = 0;
+		foreach ( $extras as $eid ) {
+			if ( ! isset( $extra_data[ $eid ] ) ) {
+				continue;
+			}
+			if ( $extra_data[ $eid ]['category'] === 'kern' ) {
+				$kern_count++;
+			} else {
+				$ta_raise_count++;
+			}
+		}
+
+		$max_kern = $level <= 3 ? 20 : 30;
+		$weight = 0;
+		foreach ( $extras as $eid ) {
+			if ( ! isset( $extra_data[ $eid ] ) ) {
+				continue;
+			}
+			$e = $extra_data[ $eid ];
+			if ( $e['category'] === 'kern' ) {
+				$pct = $kern_count === 1 ? 15 : $max_kern / $kern_count;
+			} else {
+				$pct = $ta_raise_count === 1 ? 10 : 5;
+			}
+			$weight += $this->total_flour * $pct / 100;
+		}
+		return $weight;
 	}
 
 	/** Getreide aus Mehl-ID (z. B. rye, wheat). */
@@ -472,6 +512,13 @@ class Brotarchitekt_Calculator {
 		$h = (int) $this->input['timeBudget'];
 		$is_quick = $h <= 6; // 4-6h Bucket = kein Bruehstueck
 
+		$bruehstueck_possible = true;
+		if ( $h <= 6 ) {
+			// is_quick — wird separat behandelt
+		} elseif ( $h <= 8 && in_array( $this->input['leavening'], array( 'sourdough', 'hybrid' ), true ) ) {
+			$bruehstueck_possible = false;
+		}
+
 		foreach ( $extras as $eid ) {
 			if ( ! isset( $extra_data[ $eid ] ) ) {
 				continue;
@@ -488,29 +535,35 @@ class Brotarchitekt_Calculator {
 
 			if ( $is_quick ) {
 				if ( $e['category'] === 'kern' ) {
-					$water_extra = 0;
 					$bruehstueck[] = array(
-						'name'   => $e['name'] . ' (trocken einarbeiten)',
+						'name'   => $e['name'] . __( ' (trocken einarbeiten)', 'brotarchitekt' ),
 						'amount' => $amount,
 						'water'  => 0,
 					);
 				} else {
-					$water_extra = $amount;
-					$water_main += $water_extra;
+					$water_main += $amount;
+					$bruehstueck[] = array(
+						'name'   => $e['name'] . __( ' (mit Mehl einarbeiten)', 'brotarchitekt' ),
+						'amount' => $amount,
+						'water'  => $amount,
+					);
+				}
+			} else {
+				if ( $bruehstueck_possible ) {
+					$water_extra = round( $amount * $e['ratio'], 0 );
+					$water_main -= $water_extra;
 					$bruehstueck[] = array(
 						'name'   => $e['name'],
+						'amount' => $amount,
+						'water'  => $water_extra,
+					);
+				} else {
+					$bruehstueck[] = array(
+						'name'   => $e['name'] . __( ' (trocken einarbeiten)', 'brotarchitekt' ),
 						'amount' => $amount,
 						'water'  => 0,
 					);
 				}
-			} else {
-				$water_extra = round( $amount * $e['ratio'], 0 );
-				$water_main -= $water_extra;
-				$bruehstueck[] = array(
-					'name'   => $e['name'],
-					'amount' => $amount,
-					'water'  => $water_extra,
-				);
 			}
 		}
 
@@ -674,7 +727,7 @@ class Brotarchitekt_Calculator {
 					'duration' => 10,
 					'desc'     => __( 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen.', 'brotarchitekt' ),
 				);
-				$t += 10 * 60;
+				// Kein $t += — Kochstück kann parallel zum Brühstück-Quellen geschehen
 			}
 		}
 
@@ -703,7 +756,8 @@ class Brotarchitekt_Calculator {
 		);
 		$t += $knet_min * 60;
 
-		// Stretch & Fold (nicht bei Roggen >= 75%)
+		// Stretch & Fold (innerhalb der Stockgare, nicht bei Roggen >= 75%)
+		$sf_total_min = 0;
 		if ( $this->rye_share < 75 ) {
 			for ( $i = 1; $i <= 3; $i++ ) {
 				$steps[] = array(
@@ -714,13 +768,12 @@ class Brotarchitekt_Calculator {
 				);
 				$t += 15 * 60;
 			}
+			$sf_total_min = 45;
 		}
 
-		// Stockgare berechnen
-		$stockgare_min = 90; // Default fuer Hefe
-		if ( $from_fridge ) {
-			$stockgare_min = 8 * 60;
-		} elseif ( $this->rye_share >= 75 ) {
+		// Stockgare (Gesamtdauer nach Regelwerk)
+		$stockgare_min = 90;
+		if ( $this->rye_share >= 75 ) {
 			if ( $this->sourdough_pct >= 40 ) {
 				$stockgare_min = 30;
 			} elseif ( $this->sourdough_pct >= 25 ) {
@@ -759,36 +812,110 @@ class Brotarchitekt_Calculator {
 				$stockgare_min = 300;
 			}
 		}
-		$steps[] = array(
-			'time'     => $t,
-			'label'    => $from_fridge ? __( 'Stockgare (Kühlschrank)', 'brotarchitekt' ) : __( 'Stockgare', 'brotarchitekt' ),
-			'duration' => $stockgare_min,
-			'desc'     => $from_fridge ? __( 'Geformtes Brot abgedeckt mind. 8 Stunden im Kühlschrank lassen.', 'brotarchitekt' ) : __( 'Teig abdecken und gehen lassen.', 'brotarchitekt' ),
-		);
-		$t += $stockgare_min * 60;
 
-		// Formen
-		$steps[] = array(
-			'time'     => $t,
-			'label'    => __( 'Formen', 'brotarchitekt' ),
-			'duration' => 10,
-			'desc'     => $this->rye_share >= 75
-				? __( 'Hände und Fläche anfeuchten. Teig vorsichtig zu Laib oder Kugel formen. In bemehltes Gärkörbchen legen.', 'brotarchitekt' )
-				: __( 'Teig zur Mitte falten, umdrehen, zu Kugel formen. Spannung auf der Oberfläche aufbauen.', 'brotarchitekt' ),
-		);
-		$t += 10 * 60;
+		$h = $time_budget_h;
 
-		// Stückgare
-		$stueckgare_min = $this->rye_share >= 75 ? 150 : 90;
-		if ( $from_fridge ) {
-			$stueckgare_min = 0;
-		}
-		if ( $stueckgare_min > 0 ) {
+		if ( $this->uses_fridge && ! $from_fridge ) {
+			// Variante 1: Kalte Stockgare — Anspringzeit → Kühlschrank → Formen → Warme Stückgare
+			$fridge_hours = $h - 4;
+			if ( $fridge_hours >= 16 ) {
+				$anspring_min = 60;
+			} elseif ( $fridge_hours >= 12 ) {
+				$anspring_min = 90;
+			} else {
+				$anspring_min = 120;
+			}
+			$anspring_rest = max( 0, $anspring_min - $sf_total_min );
+			if ( $anspring_rest > 0 ) {
+				$steps[] = array(
+					'time'     => $t,
+					'label'    => __( 'Anspringzeit (warm)', 'brotarchitekt' ),
+					'duration' => $anspring_rest,
+					'desc'     => __( 'Teig abgedeckt bei Raumtemperatur anspringen lassen, bevor er in den Kühlschrank kommt.', 'brotarchitekt' ),
+				);
+				$t += $anspring_rest * 60;
+			}
+			$cold_hours = max( 8, $fridge_hours );
+			$steps[] = array(
+				'time'     => $t,
+				'label'    => __( 'Stockgare im Kühlschrank', 'brotarchitekt' ),
+				'duration' => $cold_hours * 60,
+				'desc'     => sprintf( __( 'Teig abgedeckt %d Stunden im Kühlschrank (4–5°C) gehen lassen.', 'brotarchitekt' ), $cold_hours ),
+			);
+			$t += $cold_hours * 60 * 60;
+			$steps[] = array(
+				'time'     => $t,
+				'label'    => __( 'Formen', 'brotarchitekt' ),
+				'duration' => 10,
+				'desc'     => __( 'Teig zur Mitte falten, umdrehen, zu Kugel formen. Spannung auf der Oberfläche aufbauen.', 'brotarchitekt' ),
+			);
+			$t += 10 * 60;
+			$stueckgare_min = 90;
+			$steps[] = array(
+				'time'     => $t,
+				'label'    => __( 'Stückgare (warm)', 'brotarchitekt' ),
+				'duration' => $stueckgare_min,
+				'desc'     => __( 'Geformtes Brot abdecken und bei Raumtemperatur gehen lassen. Fingertest: Delle soll langsam zurückgehen.', 'brotarchitekt' ),
+			);
+			$t += $stueckgare_min * 60;
+
+		} elseif ( $this->uses_fridge && $from_fridge ) {
+			// Variante 2: Direkt aus Kühlschrank — Warme Stockgare → Formen → Kalte Stückgare
+			$stockgare_rest = max( 0, $stockgare_min - $sf_total_min );
+			if ( $stockgare_rest > 0 ) {
+				$steps[] = array(
+					'time'     => $t,
+					'label'    => __( 'Restliche Stockgare', 'brotarchitekt' ),
+					'duration' => $stockgare_rest,
+					'desc'     => __( 'Teig abdecken und gehen lassen.', 'brotarchitekt' ),
+				);
+				$t += $stockgare_rest * 60;
+			}
+			$steps[] = array(
+				'time'     => $t,
+				'label'    => __( 'Formen', 'brotarchitekt' ),
+				'duration' => 10,
+				'desc'     => __( 'Teig zur Mitte falten, umdrehen, zu Kugel formen. In bemehltes Gärkörbchen legen.', 'brotarchitekt' ),
+			);
+			$t += 10 * 60;
+			$cold_stueck_hours = max( 8, $h - 6 );
+			$steps[] = array(
+				'time'     => $t,
+				'label'    => __( 'Stückgare im Kühlschrank', 'brotarchitekt' ),
+				'duration' => $cold_stueck_hours * 60,
+				'desc'     => sprintf( __( 'Geformtes Brot abgedeckt mind. %d Stunden im Kühlschrank lassen. Direkt aus dem Kühlschrank backen.', 'brotarchitekt' ), $cold_stueck_hours ),
+			);
+			$t += $cold_stueck_hours * 60 * 60;
+
+		} else {
+			// Variante 3: Kein Kühlschrank — Restliche Stockgare → Formen → Warme Stückgare
+			$stockgare_rest = max( 0, $stockgare_min - $sf_total_min );
+			if ( $stockgare_rest > 0 ) {
+				$steps[] = array(
+					'time'     => $t,
+					'label'    => $sf_total_min > 0 ? __( 'Restliche Stockgare', 'brotarchitekt' ) : __( 'Stockgare', 'brotarchitekt' ),
+					'duration' => $stockgare_rest,
+					'desc'     => __( 'Teig abdecken und gehen lassen.', 'brotarchitekt' ),
+				);
+				$t += $stockgare_rest * 60;
+			}
+			$steps[] = array(
+				'time'     => $t,
+				'label'    => __( 'Formen', 'brotarchitekt' ),
+				'duration' => 10,
+				'desc'     => $this->rye_share >= 75
+					? __( 'Hände und Fläche anfeuchten. Teig vorsichtig zu Laib oder Kugel formen. In bemehltes Gärkörbchen legen.', 'brotarchitekt' )
+					: __( 'Teig zur Mitte falten, umdrehen, zu Kugel formen. Spannung auf der Oberfläche aufbauen.', 'brotarchitekt' ),
+			);
+			$t += 10 * 60;
+			$stueckgare_min = $this->rye_share >= 75 ? 150 : 90;
 			$steps[] = array(
 				'time'     => $t,
 				'label'    => __( 'Stückgare', 'brotarchitekt' ),
 				'duration' => $stueckgare_min,
-				'desc'     => __( 'Geformtes Brot abdecken und gehen lassen. Fingertest: Delle soll langsam zurückgehen.', 'brotarchitekt' ),
+				'desc'     => $this->rye_share >= 75
+					? __( 'Brot im Gärkörbchen gehen lassen. Fertig wenn feine Risse im Mehl auf der Oberfläche sichtbar werden.', 'brotarchitekt' )
+					: __( 'Geformtes Brot abdecken und gehen lassen. Fingertest: Delle soll langsam zurückgehen.', 'brotarchitekt' ),
 			);
 			$t += $stueckgare_min * 60;
 		}
