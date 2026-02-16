@@ -557,7 +557,11 @@
 			const tbody = section.querySelector('tbody');
 			(g.items || []).forEach(item => {
 				const tr = document.createElement('tr');
-				tr.innerHTML = '<td>' + escapeHtml(item.name) + '</td><td>' + item.amount + ' ' + (item.unit || 'g') + '</td>';
+				var amountStr = item.amount + ' ' + (item.unit || 'g');
+if (item.percent != null && item.percent !== undefined) {
+	amountStr += ' (' + item.percent + ' %)';
+}
+tr.innerHTML = '<td>' + escapeHtml(item.name) + '</td><td>' + amountStr + '</td>';
 				tbody.appendChild(tr);
 			});
 			ingContainer.appendChild(section);

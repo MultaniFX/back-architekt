@@ -314,8 +314,61 @@ class Brotarchitekt_Calculator {
 		);
 	}
 
+	/** Getreide aus Mehl-ID (z. B. rye, wheat). */
+	private function get_grain_from_flour_id( string $flour_id ): string {
+		$parts = explode( '_', $flour_id, 2 );
+		return $parts[0];
+	}
+
+	/** Von flour_amounts einen Betrag vom passenden Getreide abziehen. Gibt abgezogenen Betrag zurück. */
+	private function subtract_flour_from_grain( array &$flour_amounts, string $grain, float $amount ): float {
+		$remaining = $amount;
+		foreach ( array_keys( $flour_amounts ) as $id ) {
+			if ( $remaining <= 0 ) {
+				break;
+			}
+			if ( $this->get_grain_from_flour_id( $id ) !== $grain ) {
+				continue;
+			}
+			$take = min( $remaining, (float) $flour_amounts[ $id ] );
+			$flour_amounts[ $id ] = $flour_amounts[ $id ] - $take;
+			$remaining -= $take;
+			if ( $flour_amounts[ $id ] <= 0 ) {
+				unset( $flour_amounts[ $id ] );
+			}
+		}
+		return $amount - $remaining;
+	}
+
+	/** Von flour_amounts einen Betrag von Urkorn/Dinkel abziehen (Kochstück). */
+	private function subtract_flour_from_ancient( array &$flour_amounts, float $amount ): float {
+		$ancient = array( 'spelt', 'emmer', 'einkorn', 'kamut' );
+		$remaining = $amount;
+		foreach ( array_keys( $flour_amounts ) as $id ) {
+			if ( $remaining <= 0 ) {
+				break;
+			}
+			$g = $this->get_grain_from_flour_id( $id );
+			if ( ! in_array( $g, $ancient, true ) ) {
+				continue;
+			}
+			$take = min( $remaining, (float) $flour_amounts[ $id ] );
+			$flour_amounts[ $id ] = $flour_amounts[ $id ] - $take;
+			$remaining -= $take;
+			if ( $flour_amounts[ $id ] <= 0 ) {
+				unset( $flour_amounts[ $id ] );
+			}
+		}
+		return $amount - $remaining;
+	}
+
+	/** Prozent bezogen auf Gesamtmehl (für Anzeige in Klammern). */
+	private function percent_of_flour( $amount ): float {
+		return $this->total_flour > 0 ? round( ( (float) $amount / $this->total_flour ) * 100, 1 ) : 0;
+	}
+
 	/**
-	 * @return array<string, array{label: string, items: array<int, array{name: string, amount: int|float, unit: string}>}>
+	 * @return array<string, array{label: string, items: array<int, array{name: string, amount: int|float, unit: string, percent?: float}>}>
 	 */
 	protected function get_ingredients(): array {
 		$flour_amounts = array();
@@ -329,30 +382,50 @@ class Brotarchitekt_Calculator {
 		$salt = round( $this->total_flour * 0.02, 0 );
 		$water_main = $this->water_total;
 
-		// Sauerteig
+		// Sauerteig: Menge berechnen; Wasser abziehen; Mehl später vom passenden Getreide abziehen
 		$sourdough_flour = 0;
 		$sourdough_water = 0;
+		$st_flour_grain = null;
 		if ( $this->sourdough_pct > 0 ) {
 			$st_type = Brotarchitekt_Data::get_sourdough_types();
 			$st = isset( $st_type[ $this->input['sourdoughType'] ] ) ? $st_type[ $this->input['sourdoughType'] ] : $st_type['rye'];
 			$st_ta = $st['ta'] / 100;
-			// ST = Mehl + Wasser, ST_Anteil in % vom Hauptteig-Mehl
+			$st_flour_grain = $st['flour_grain'];
 			$st_total = $this->total_flour * ( $this->sourdough_pct / 100 );
 			$st_mehl = $st_total / ( 1 + $st_ta );
 			$st_water = $st_total - $st_mehl;
 			$sourdough_flour = round( $st_mehl, 0 );
 			$sourdough_water = round( $st_water, 0 );
 			$water_main -= $sourdough_water;
-			// Mehl vom entsprechenden Typ abziehen (vereinfacht: erstmal nur Mengen ausweisen)
 		}
 
-		// Kochstück (Dinkel/Urkorn)
+		// Kochstück: Mehl vom Dinkel/Urkorn-Anteil abziehen
 		$kochstueck_mehl = 0;
 		$kochstueck_water = 0;
 		if ( $this->has_kochstueck ) {
 			$kochstueck_mehl = round( $this->total_flour * 0.04, 0 );
 			$kochstueck_water = $kochstueck_mehl * 5;
 			$water_main -= $kochstueck_water;
+			$this->subtract_flour_from_ancient( $flour_amounts, $kochstueck_mehl );
+		}
+
+		// Sauerteig-Mehl vom passenden Getreide abziehen (sonst von erstem Hauptmehl)
+		if ( $sourdough_flour > 0 && $st_flour_grain !== null ) {
+			$subtracted = $this->subtract_flour_from_grain( $flour_amounts, $st_flour_grain, $sourdough_flour );
+			if ( $subtracted < $sourdough_flour && ! empty( $flour_amounts ) ) {
+				$remaining = $sourdough_flour - $subtracted;
+				foreach ( array_keys( $flour_amounts ) as $id ) {
+					if ( $remaining <= 0 ) {
+						break;
+					}
+					$take = min( $remaining, (float) $flour_amounts[ $id ] );
+					$flour_amounts[ $id ] = $flour_amounts[ $id ] - $take;
+					$remaining -= $take;
+					if ( $flour_amounts[ $id ] <= 0 ) {
+						unset( $flour_amounts[ $id ] );
+					}
+				}
+			}
 		}
 
 		// Brühstück (Extras)
@@ -411,10 +484,16 @@ class Brotarchitekt_Calculator {
 		$groups = array();
 
 		if ( $this->sourdough_pct > 0 ) {
+			$st_total_g = $sourdough_flour + $sourdough_water;
 			$groups['sourdough'] = array(
 				'label' => __( 'Sauerteig', 'brotarchitekt' ),
 				'items'  => array(
-					array( 'name' => __( 'Sauerteig (Anstellgut + Mehl + Wasser)', 'brotarchitekt' ), 'amount' => $sourdough_flour + $sourdough_water, 'unit' => 'g' ),
+					array(
+						'name'    => __( 'Sauerteig (Anstellgut + Mehl + Wasser)', 'brotarchitekt' ),
+						'amount'  => $st_total_g,
+						'unit'    => 'g',
+						'percent' => $this->percent_of_flour( $st_total_g ),
+					),
 				),
 			);
 		}
@@ -423,8 +502,8 @@ class Brotarchitekt_Calculator {
 			$groups['kochstueck'] = array(
 				'label' => __( 'Kochstück (Tangzhong)', 'brotarchitekt' ),
 				'items' => array(
-					array( 'name' => __( 'Mehl', 'brotarchitekt' ), 'amount' => $kochstueck_mehl, 'unit' => 'g' ),
-					array( 'name' => __( 'Wasser', 'brotarchitekt' ), 'amount' => $kochstueck_water, 'unit' => 'g' ),
+					array( 'name' => __( 'Mehl', 'brotarchitekt' ), 'amount' => $kochstueck_mehl, 'unit' => 'g', 'percent' => $this->percent_of_flour( $kochstueck_mehl ) ),
+					array( 'name' => __( 'Wasser', 'brotarchitekt' ), 'amount' => $kochstueck_water, 'unit' => 'g', 'percent' => $this->percent_of_flour( $kochstueck_water ) ),
 				),
 			);
 		}
@@ -432,21 +511,29 @@ class Brotarchitekt_Calculator {
 		if ( ! empty( $bruehstueck ) ) {
 			$items = array();
 			foreach ( $bruehstueck as $b ) {
-				$items[] = array( 'name' => $b['name'], 'amount' => $b['amount'], 'unit' => 'g' );
-				$items[] = array( 'name' => __( 'Wasser (heiß)', 'brotarchitekt' ), 'amount' => $b['water'], 'unit' => 'g' );
+				$items[] = array( 'name' => $b['name'], 'amount' => $b['amount'], 'unit' => 'g', 'percent' => $this->percent_of_flour( $b['amount'] ) );
+				$items[] = array( 'name' => __( 'Wasser (heiß)', 'brotarchitekt' ), 'amount' => $b['water'], 'unit' => 'g', 'percent' => $this->percent_of_flour( $b['water'] ) );
 			}
 			$groups['bruehstueck'] = array( 'label' => __( 'Brühstück', 'brotarchitekt' ), 'items' => $items );
 		}
 
 		$main_items = array();
 		foreach ( $flour_amounts as $id => $g ) {
-			$main_items[] = array( 'name' => Brotarchitekt_Data::get_flour_label( $id ), 'amount' => $g, 'unit' => 'g' );
+			if ( $g <= 0 ) {
+				continue;
+			}
+			$main_items[] = array(
+				'name'    => Brotarchitekt_Data::get_flour_label( $id ),
+				'amount'  => $g,
+				'unit'    => 'g',
+				'percent' => $this->percent_of_flour( $g ),
+			);
 		}
-		$main_items[] = array( 'name' => __( 'Wasser', 'brotarchitekt' ), 'amount' => $water_main, 'unit' => 'g' );
+		$main_items[] = array( 'name' => __( 'Wasser', 'brotarchitekt' ), 'amount' => $water_main, 'unit' => 'g', 'percent' => $this->percent_of_flour( $water_main ) );
 		if ( $hefe_g > 0 ) {
-			$main_items[] = array( 'name' => __( 'Hefe (frisch)', 'brotarchitekt' ), 'amount' => $hefe_g, 'unit' => 'g' );
+			$main_items[] = array( 'name' => __( 'Hefe (frisch)', 'brotarchitekt' ), 'amount' => $hefe_g, 'unit' => 'g', 'percent' => $this->percent_of_flour( $hefe_g ) );
 		}
-		$main_items[] = array( 'name' => __( 'Salz', 'brotarchitekt' ), 'amount' => $salt, 'unit' => 'g' );
+		$main_items[] = array( 'name' => __( 'Salz', 'brotarchitekt' ), 'amount' => $salt, 'unit' => 'g', 'percent' => $this->percent_of_flour( $salt ) );
 		$groups['main'] = array( 'label' => __( 'Hauptteig', 'brotarchitekt' ), 'items' => $main_items );
 
 		return $groups;
