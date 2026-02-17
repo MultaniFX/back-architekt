@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BROTARCHITEKT_VERSION', '1.0.0' );
+define( 'BROTARCHITEKT_VERSION', '1.1.0' );
 define( 'BROTARCHITEKT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BROTARCHITEKT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
