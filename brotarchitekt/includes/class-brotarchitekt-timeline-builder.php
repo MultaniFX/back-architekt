@@ -301,9 +301,12 @@ class Brotarchitekt_Timeline_Builder {
 		$preheat_min    = $this->baking->get_preheat( $ctx );
 		$bake_min       = $this->baking->get_duration( $ctx );
 
+		// Vorheizen läuft parallel zur Stückgare → nur Überhang zählt
+		$preheat_extra  = max( 0, $preheat_min - $stueckgare_min );
+
 		// Anspringzeit hängt von Kaltdauer ab → erst grob schätzen, dann iterieren
 		$budget_min     = $time_budget_h * 60;
-		$fixed_after    = $formen_min + $akklim_min + $stueckgare_min + $preheat_min + $bake_min;
+		$fixed_after    = $formen_min + $akklim_min + $stueckgare_min + $preheat_extra + $bake_min;
 
 		// Erst Anspringzeit ohne S&F-Abzug für Kaltzeit-Schätzung
 		$cold_estimate  = $budget_min - $elapsed_min - $fixed_after - 120; // 120 min Anspring-Schätzung
@@ -319,7 +322,7 @@ class Brotarchitekt_Timeline_Builder {
 		$ctx->log( 'Timeline', 'F.6: Kalte Stockgare (Rückwärtsrechnung)',
 			'Budget ' . $budget_min . ' min − bisher ' . $elapsed_min . ' min − Anspringen ' . $anspring_rest
 			. ' min − Formen ' . $formen_min . ' min − Akklim. ' . $akklim_min . ' min − Stückgare ' . $stueckgare_min
-			. ' min − Vorheizen ' . $preheat_min . ' min − Backen ' . $bake_min . ' min = '
+			. ' min (Vorheizen ' . $preheat_min . ' min parallel) − Backen ' . $bake_min . ' min = '
 			. $available_for_cold . ' min verfügbar → ' . $cold_hours . 'h kalte Stockgare'
 		);
 
@@ -398,12 +401,20 @@ class Brotarchitekt_Timeline_Builder {
 	private function add_baking(): void {
 		$ctx = $this->ctx;
 
-		// Ofen vorheizen
+		// Ofen vorheizen — startet WÄHREND der Stückgare, so dass er fertig ist wenn gebacken wird
 		$preheat = $this->baking->get_preheat( $ctx );
+		$preheat_start = max( 0, $this->t - $preheat * 60 );
 		$preheat_desc = $ctx->input['backMethod'] === 'pot'
 			? __( 'Topf mit im Ofen mit aufheizen (30–45 Min).', 'brotarchitekt' )
 			: __( 'Pizzastein/Backstahl 45–60 Min vorheizen.', 'brotarchitekt' );
-		$this->step( __( 'Ofen vorheizen', 'brotarchitekt' ), $preheat, $preheat_desc );
+
+		$this->steps[] = array(
+			'time'     => $preheat_start,
+			'label'    => __( 'Ofen vorheizen', 'brotarchitekt' ),
+			'duration' => $preheat,
+			'desc'     => $preheat_desc,
+		);
+		// $this->t bleibt unverändert — Vorheizen läuft parallel zur Stückgare
 
 		// Backen
 		$bake_min = $this->baking->get_duration( $ctx );
