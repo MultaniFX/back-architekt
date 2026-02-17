@@ -32,24 +32,42 @@ class Brotarchitekt_REST {
 		) );
 	}
 
-	public static function calculate_recipe( WP_REST_Request $request ): WP_REST_Response {
-		$input = array(
-			'timeBudget'      => $request->get_param( 'timeBudget' ),
-			'experienceLevel' => $request->get_param( 'experienceLevel' ),
-			'bakeFromFridge'  => $request->get_param( 'bakeFromFridge' ),
-			'leavening'       => $request->get_param( 'leavening' ),
-			'sourdoughType'   => $request->get_param( 'sourdoughType' ),
-			'sourdoughReady'   => $request->get_param( 'sourdoughReady' ),
-			'flourAmount'     => $request->get_param( 'flourAmount' ),
-			'mainFlours'      => $request->get_param( 'mainFlours' ),
-			'sideFlours'      => $request->get_param( 'sideFlours' ),
-			'extras'          => $request->get_param( 'extras' ),
-			'backMethod'      => $request->get_param( 'backMethod' ),
-		);
+	public static function calculate_recipe( WP_REST_Request $request ) {
+		try {
+			$input = array(
+				'timeBudget'      => $request->get_param( 'timeBudget' ),
+				'experienceLevel' => $request->get_param( 'experienceLevel' ),
+				'bakeFromFridge'  => $request->get_param( 'bakeFromFridge' ),
+				'leavening'       => $request->get_param( 'leavening' ),
+				'sourdoughType'   => $request->get_param( 'sourdoughType' ),
+				'sourdoughReady'  => $request->get_param( 'sourdoughReady' ),
+				'flourAmount'     => $request->get_param( 'flourAmount' ),
+				'mainFlours'      => $request->get_param( 'mainFlours' ),
+				'sideFlours'      => $request->get_param( 'sideFlours' ),
+				'extras'          => $request->get_param( 'extras' ),
+				'backMethod'      => $request->get_param( 'backMethod' ),
+			);
 
-		$calc = new Brotarchitekt_Calculator();
-		$recipe = $calc->calculate( $input );
+			// Sicherstellen, dass Arrays vorliegen (z. B. wenn JSON-Body nicht geparst wurde)
+			$input['mainFlours'] = is_array( $input['mainFlours'] ) ? $input['mainFlours'] : array();
+			$input['sideFlours'] = is_array( $input['sideFlours'] ) ? $input['sideFlours'] : array();
+			$input['extras']     = is_array( $input['extras'] ) ? $input['extras'] : array();
+			if ( empty( $input['timeBudget'] ) ) {
+				$input['timeBudget'] = 12;
+			}
 
-		return new WP_REST_Response( $recipe, 200 );
+			$calc   = new Brotarchitekt_Calculator();
+			$recipe = $calc->calculate( $input );
+
+			return new WP_REST_Response( $recipe, 200 );
+		} catch ( \Throwable $e ) {
+			return new WP_REST_Response(
+				array(
+					'code'    => 'recipe_error',
+					'message' => $e->getMessage(),
+				),
+				500
+			);
+		}
 	}
 }

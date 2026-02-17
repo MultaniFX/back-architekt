@@ -229,6 +229,7 @@ final class Brotarchitekt_Plugin {
 						<div class="brotarchitekt-block">
 							<label class="brotarchitekt-block-label"><?php esc_html_e( 'Hauptmehle', 'brotarchitekt' ); ?></label>
 							<p class="brotarchitekt-block-hint" data-main-flour-hint><?php esc_html_e( 'Wähle bis zu 1 Hauptmehl', 'brotarchitekt' ); ?></p>
+							<div class="brotarchitekt-notice brotarchitekt-notice--error" data-step-2-required hidden role="alert"><?php esc_html_e( 'Bitte wähle mindestens ein Hauptmehl, um fortzufahren.', 'brotarchitekt' ); ?></div>
 							<div class="brotarchitekt-flour-selectors" data-main-flours></div>
 						</div>
 						<div class="brotarchitekt-block" data-side-flours-wrap hidden>

@@ -168,8 +168,10 @@ class Brotarchitekt_Recipe_Context {
 		$level = (int) $this->input['experienceLevel'];
 		$this->level = ( $level >= 1 && $level <= 5 ) ? $level : 2;
 
-		// Level-Info laden
+		// Level-Info laden (Fallback auf Level 2 falls Key fehlt)
 		$all_levels = Brotarchitekt_Data::get_level_info();
-		$this->level_info = $all_levels[ $this->level ];
+		$this->level_info = isset( $all_levels[ $this->level ] ) && is_array( $all_levels[ $this->level ] )
+			? $all_levels[ $this->level ]
+			: $all_levels[2];
 	}
 }

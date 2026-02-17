@@ -680,6 +680,11 @@
 	background: rgba(74, 106, 138, 0.12);
 	border-left: 4px solid #4a6a8a;
 }
+.brotarchitekt-notice--error {
+	background: rgba(180, 60, 50, 0.12);
+	border-left: 4px solid #b43c32;
+	color: var(--ba-text);
+}
 
 /* ========== Wizard Nav ========== */
 .brotarchitekt-wizard-nav {

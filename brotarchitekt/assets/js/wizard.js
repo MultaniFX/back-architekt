@@ -113,9 +113,11 @@
 				select.appendChild(group);
 			});
 			select.value = state.mainFlours[i] || '';
-			select.addEventListener('change', () => {
+			select.addEventListener('change', function () {
 				state.mainFlours[i] = select.value || null;
 				state.mainFlours = state.mainFlours.filter(Boolean);
+				var req = app.querySelector('[data-step-2-required]');
+				if (req) req.hidden = true;
 				updateSummary();
 			});
 			const wrap = document.createElement('div');
@@ -261,6 +263,21 @@
 	}
 
 	const TOTAL_STEPS = 5;
+
+	/** Prüft Schritt 2: mindestens ein Hauptmehl gewählt. */
+	function validateStep2() {
+		var mainFlours = Array.from(app.querySelectorAll('[data-main-flours] select')).map(function (s) { return s.value; }).filter(Boolean);
+		return mainFlours.length > 0;
+	}
+
+	function showStep2Validation(show) {
+		var notice = app.querySelector('[data-step-2-required]');
+		if (notice) notice.hidden = !show;
+		if (show) {
+			var first = app.querySelector('[data-main-flours] select');
+			if (first) first.focus();
+		}
+	}
 
 	function goStep(step) {
 		state.step = step;
@@ -465,7 +482,13 @@
 			return;
 		}
 		if (a === 'next') {
-			goStep(Math.min(TOTAL_STEPS, state.step + 1));
+			var nextStep = state.step + 1;
+			if (state.step === 2 && nextStep >= 3 && !validateStep2()) {
+				showStep2Validation(true);
+				return;
+			}
+			showStep2Validation(false);
+			goStep(Math.min(TOTAL_STEPS, nextStep));
 			return;
 		}
 		if (a === 'skip-extras') {
@@ -476,26 +499,15 @@
 			return;
 		}
 		if (a === 'calculate') {
-			// Validierung: mind. 1 Hauptmehl
-			const mainFilled = state.mainFlours.length > 0 || app.querySelector('[data-main-flours] select')?.value;
-			if (!mainFilled) {
-				const firstMain = app.querySelector('[data-main-flours] select');
-				if (firstMain) firstMain.focus();
+			if (!validateStep2()) {
+				goStep(2);
+				showStep2Validation(true);
 				return;
 			}
-			// State aus DOM synchronisieren
-			app.querySelectorAll('[data-main-flours] select').forEach((sel, i) => {
-				if (sel.value) state.mainFlours[i] = sel.value;
-			});
-			state.mainFlours = state.mainFlours.filter(Boolean);
-			app.querySelectorAll('[data-side-flours] select').forEach((sel, i) => {
-				if (sel.value) state.sideFlours[i] = sel.value;
-			});
-			state.sideFlours = state.sideFlours.filter(Boolean);
-			state.flourAmount = parseInt(app.querySelector('[data-flour-amount]')?.value, 10) || 500;
-			state.mainFlours = Array.from(app.querySelectorAll('[data-main-flours] select')).map(s => s.value).filter(Boolean);
-			state.sideFlours = Array.from(app.querySelectorAll('[data-side-flours] select')).map(s => s.value).filter(Boolean);
-			const flourInputEl = app.querySelector('[data-flour-amount-input]');
+			showStep2Validation(false);
+			state.mainFlours = Array.from(app.querySelectorAll('[data-main-flours] select')).map(function (s) { return s.value; }).filter(Boolean);
+			state.sideFlours = Array.from(app.querySelectorAll('[data-side-flours] select')).map(function (s) { return s.value; }).filter(Boolean);
+			var flourInputEl = app.querySelector('[data-flour-amount-input]');
 			if (flourInputEl) state.flourAmount = parseInt(flourInputEl.value, 10) || 500;
 			fetchRecipe();
 			return;
@@ -527,10 +539,10 @@
 			sourdoughType: state.sourdoughType,
 			sourdoughReady: state.sourdoughReady,
 			flourAmount: state.flourAmount,
-			mainFlours: state.mainFlours,
-			sideFlours: state.sideFlours,
-			extras: state.extras,
-			backMethod: state.backMethod,
+			mainFlours: Array.isArray(state.mainFlours) ? state.mainFlours : [],
+			sideFlours: Array.isArray(state.sideFlours) ? state.sideFlours : [],
+			extras: Array.isArray(state.extras) ? state.extras : [],
+			backMethod: state.backMethod || 'pot',
 		};
 		fetch(REST_URL, {
 			method: 'POST',
@@ -540,8 +552,24 @@
 			},
 			body: JSON.stringify(body),
 		})
-			.then(res => res.ok ? res.json() : Promise.reject(new Error('Request failed')))
-			.then(recipe => {
+			.then(function (res) {
+				if (!res.ok) {
+					return res.text().then(function (text) {
+						var msg = res.status + ' ' + res.statusText;
+						try {
+							var j = JSON.parse(text);
+							if (j.message) msg = j.message;
+							else if (j.code) msg = j.code + ': ' + (j.message || msg);
+						} catch (e) {}
+						return Promise.reject(new Error(msg));
+					});
+				}
+				return res.json();
+			})
+			.then(function (recipe) {
+				if (!recipe || typeof recipe !== 'object') {
+					throw new Error('Ungültige Rezept-Antwort');
+				}
 				const step5Result = app.querySelector('[data-step-5-result]');
 				const step5Empty = app.querySelector('[data-step-5-empty]');
 				if (step5Result && step5Empty) {
@@ -556,8 +584,8 @@
 					showView('result');
 				}
 			})
-			.catch(err => {
-				errorView.textContent = LABELS.error || 'Es ist ein Fehler aufgetreten.';
+			.catch(function (err) {
+				errorView.textContent = (err && err.message) ? err.message : (LABELS.error || 'Es ist ein Fehler aufgetreten.');
 				errorView.hidden = false;
 				showView('error');
 			});
@@ -567,7 +595,8 @@
 		root = root || app;
 		const q = (sel) => root.querySelector(sel);
 
-		q('[data-recipe-title]').textContent = recipe.name || '';
+		const titleEl = q('[data-recipe-title]');
+		if (titleEl) titleEl.textContent = recipe.name || '';
 		const meta = recipe.meta || {};
 		const tagLabels = [meta.level, meta.time, meta.back].filter(Boolean);
 		const metaContainer = q('[data-recipe-meta]');
@@ -643,12 +672,18 @@
 		}
 	}
 
-	// Progress-Steps: Klick auf Schritt wechselt dorthin
-	app.addEventListener('click', (e) => {
-		const stepBtn = e.target.closest('.brotarchitekt-progress-step');
-		if (stepBtn && stepBtn.dataset.step) {
-			goStep(parseInt(stepBtn.dataset.step, 10));
+	// Progress-Steps: Klick auf Schritt wechselt dorthin (Pflichtfelder prüfen)
+	app.addEventListener('click', function (e) {
+		var stepBtn = e.target.closest('.brotarchitekt-progress-step');
+		if (!stepBtn || !stepBtn.dataset.step) return;
+		var targetStep = parseInt(stepBtn.dataset.step, 10);
+		if (targetStep >= 3 && !validateStep2()) {
+			goStep(2);
+			showStep2Validation(true);
+			return;
 		}
+		showStep2Validation(false);
+		goStep(targetStep);
 	});
 
 	bindWizard();
