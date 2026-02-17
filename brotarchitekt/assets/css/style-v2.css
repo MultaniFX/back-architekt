@@ -1,0 +1,139 @@
+/**
+ * Brotarchitekt – Premium Design v2
+ * Overrides für style.css: wärmere Farben, bessere Slider, mehr Whitespace.
+ * Aktiviert per [brotarchitekt design="v2"]
+ */
+
+/* === 5a: Wärmere Farbtöne === */
+.brotarchitekt[data-design="v2"] {
+	--ba-bg: #faf7f2;
+	--ba-bg-card: #f3ead8;
+	--ba-shadow: 0 4px 24px rgba(44, 34, 24, 0.06);
+	--ba-shadow-hover: 0 8px 32px rgba(44, 34, 24, 0.12);
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-wizard {
+	background: var(--ba-bg);
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-setting-card,
+.brotarchitekt[data-design="v2"] .brotarchitekt-card,
+.brotarchitekt[data-design="v2"] .brotarchitekt-extras-card,
+.brotarchitekt[data-design="v2"] .brotarchitekt-metric-card {
+	box-shadow: var(--ba-shadow);
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-setting-card:hover,
+.brotarchitekt[data-design="v2"] .brotarchitekt-card:hover,
+.brotarchitekt[data-design="v2"] .brotarchitekt-extras-card:hover {
+	box-shadow: var(--ba-shadow-hover);
+}
+
+/* === 5b: Premium Slider === */
+.brotarchitekt[data-design="v2"] input[type="range"] {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 100%;
+	height: 10px;
+	border-radius: 5px;
+	background: #e8dcc8;
+	outline: none;
+}
+
+.brotarchitekt[data-design="v2"] input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--ba-primary, #c87137);
+	border: 3px solid #fff;
+	box-shadow: 0 2px 8px rgba(44, 34, 24, 0.2);
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.brotarchitekt[data-design="v2"] input[type="range"]::-webkit-slider-thumb:hover {
+	transform: scale(1.1);
+	box-shadow: 0 3px 12px rgba(44, 34, 24, 0.3);
+}
+
+.brotarchitekt[data-design="v2"] input[type="range"]::-moz-range-thumb {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--ba-primary, #c87137);
+	border: 3px solid #fff;
+	box-shadow: 0 2px 8px rgba(44, 34, 24, 0.2);
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.brotarchitekt[data-design="v2"] input[type="range"]::-moz-range-track {
+	height: 10px;
+	border-radius: 5px;
+	background: #e8dcc8;
+}
+
+/* === 5c: Mehr Whitespace === */
+.brotarchitekt[data-design="v2"] .brotarchitekt-setting-cards {
+	gap: 1.5rem;
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-block {
+	padding: 1.5rem;
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-step-sub {
+	margin-bottom: 2rem;
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-wizard-nav {
+	margin-top: 2.5rem;
+}
+
+/* === 5d: Weichere Übergänge === */
+.brotarchitekt[data-design="v2"] .brotarchitekt-card,
+.brotarchitekt[data-design="v2"] .brotarchitekt-chip,
+.brotarchitekt[data-design="v2"] .brotarchitekt-extras-card,
+.brotarchitekt[data-design="v2"] .brotarchitekt-btn {
+	transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === 5e: Karten-Selected-State verfeinern === */
+.brotarchitekt[data-design="v2"] .brotarchitekt-card.is-selected,
+.brotarchitekt[data-design="v2"] .brotarchitekt-extras-card.is-selected,
+.brotarchitekt[data-design="v2"] .brotarchitekt-chip.is-selected {
+	transform: translateY(-1px);
+	box-shadow: 0 6px 24px rgba(44, 34, 24, 0.15);
+}
+
+/* === 5f: Vibe-Label Styling === */
+.brotarchitekt-time-vibe {
+	display: block;
+	text-align: center;
+	font-size: 0.9rem;
+	color: var(--ba-text-muted, #8b7355);
+	font-style: italic;
+	margin-top: 0.25rem;
+	min-height: 1.3em;
+}
+
+/* === 5g: Timeline-Verfeinerung === */
+.brotarchitekt[data-design="v2"] .brotarchitekt-timeline-list {
+	padding-left: 2rem;
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-timeline-list li {
+	padding-bottom: 1.5rem;
+	padding-left: 1rem;
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-timeline-list li::marker {
+	font-size: 1.25rem;
+}
+
+.brotarchitekt[data-design="v2"] .brotarchitekt-timeline-list li::before {
+	width: 1.25rem;
+	height: 1.25rem;
+}
