@@ -288,6 +288,7 @@ final class Brotarchitekt_Plugin {
 						<h2 class="brotarchitekt-step-title"><?php esc_html_e( 'Rezept', 'brotarchitekt' ); ?></h2>
 						<p class="brotarchitekt-step-sub"><?php esc_html_e( 'Dein persönliches Brotrezept mit Mengen und Zeitplan.', 'brotarchitekt' ); ?></p>
 						<div class="brotarchitekt-step-5-empty" data-step-5-empty hidden>
+							<div class="brotarchitekt-notice brotarchitekt-notice--error" data-step-5-error hidden role="alert" aria-live="assertive"></div>
 							<p class="brotarchitekt-step-5-cta"><?php esc_html_e( 'Alle Angaben sind erfasst. Erstelle jetzt dein Rezept.', 'brotarchitekt' ); ?></p>
 							<button type="button" class="brotarchitekt-btn brotarchitekt-btn--primary brotarchitekt-btn--cta" data-action="calculate"><?php esc_html_e( 'Rezept erstellen', 'brotarchitekt' ); ?></button>
 						</div>

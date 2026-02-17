@@ -48,12 +48,26 @@ class Brotarchitekt_REST {
 				'backMethod'      => $request->get_param( 'backMethod' ),
 			);
 
-			// Sicherstellen, dass Arrays vorliegen (z. B. wenn JSON-Body nicht geparst wurde)
-			$input['mainFlours'] = is_array( $input['mainFlours'] ) ? $input['mainFlours'] : array();
-			$input['sideFlours'] = is_array( $input['sideFlours'] ) ? $input['sideFlours'] : array();
-			$input['extras']     = is_array( $input['extras'] ) ? $input['extras'] : array();
+			// Falls WordPress den JSON-Body nicht geparst hat: Body direkt lesen
+			if ( $input['timeBudget'] === null && $input['mainFlours'] === null ) {
+				$body = $request->get_body();
+				if ( $body !== '' ) {
+					$decoded = json_decode( $body, true );
+					if ( is_array( $decoded ) ) {
+						$input = array_merge( $input, $decoded );
+					}
+				}
+			}
+
+			// Sicherstellen, dass Arrays vorliegen
+			$input['mainFlours'] = is_array( $input['mainFlours'] ?? null ) ? $input['mainFlours'] : array();
+			$input['sideFlours'] = is_array( $input['sideFlours'] ?? null ) ? $input['sideFlours'] : array();
+			$input['extras']     = is_array( $input['extras'] ?? null ) ? $input['extras'] : array();
 			if ( empty( $input['timeBudget'] ) ) {
 				$input['timeBudget'] = 12;
+			}
+			if ( empty( $input['backMethod'] ) ) {
+				$input['backMethod'] = 'pot';
 			}
 
 			$calc   = new Brotarchitekt_Calculator();

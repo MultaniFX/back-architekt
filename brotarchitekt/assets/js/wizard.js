@@ -529,9 +529,50 @@
 		}
 	});
 
+	function getErrorMessage(err) {
+		if (!err) return LABELS.error || 'Es ist ein Fehler aufgetreten.';
+		var msg = err.message || String(err);
+		if (msg.indexOf('JSON') !== -1 || msg.indexOf('Unexpected token') !== -1) {
+			return 'Serverfehler: Die Antwort konnte nicht gelesen werden. Bitte prüfe, ob das Plugin aktiv ist und die REST-API erreichbar ist.';
+		}
+		if (msg.indexOf('Failed to fetch') !== -1 || msg.indexOf('NetworkError') !== -1) {
+			return 'Netzwerkfehler: Keine Verbindung zum Server. Bitte Internetverbindung und Seite prüfen.';
+		}
+		if (msg.indexOf('403') !== -1 || msg.indexOf('401') !== -1) {
+			return 'Zugriff verweigert. Bitte Seite neu laden und erneut versuchen.';
+		}
+		return msg;
+	}
+
+	function showRecipeError(message) {
+		var step5Error = app.querySelector('[data-step-5-error]');
+		var step5Empty = app.querySelector('[data-step-5-empty]');
+		var step5Result = app.querySelector('[data-step-5-result]');
+		if (step5Error && step5Empty) {
+			step5Error.textContent = message;
+			step5Error.hidden = false;
+			step5Empty.hidden = false;
+			if (step5Result) step5Result.hidden = true;
+			showView('wizard');
+			if (wizard) wizard.hidden = false;
+			goStep(5);
+		} else {
+			if (errorView) {
+				errorView.textContent = message;
+				errorView.hidden = false;
+			}
+			showView('error');
+		}
+	}
+
 	function fetchRecipe() {
+		var step5Error = app.querySelector('[data-step-5-error]');
+		if (step5Error) {
+			step5Error.hidden = true;
+			step5Error.textContent = '';
+		}
 		showView('loading');
-		const body = {
+		var body = {
 			timeBudget: state.timeBudget,
 			experienceLevel: state.experienceLevel,
 			bakeFromFridge: state.bakeFromFridge,
@@ -559,25 +600,30 @@
 						try {
 							var j = JSON.parse(text);
 							if (j.message) msg = j.message;
-							else if (j.code) msg = j.code + ': ' + (j.message || msg);
+							else if (j.code) msg = (j.code + ': ' + (j.message || msg));
 						} catch (e) {}
 						return Promise.reject(new Error(msg));
 					});
 				}
-				return res.json();
+				return res.json().then(function (data) {
+					return data;
+				}, function (parseErr) {
+					return Promise.reject(new Error('Server hat keine gültige JSON-Antwort geliefert. Möglicherweise ein PHP-Fehler auf dem Server.'));
+				});
 			})
 			.then(function (recipe) {
 				if (!recipe || typeof recipe !== 'object') {
-					throw new Error('Ungültige Rezept-Antwort');
+					throw new Error('Ungültige Rezept-Antwort vom Server.');
 				}
-				const step5Result = app.querySelector('[data-step-5-result]');
-				const step5Empty = app.querySelector('[data-step-5-empty]');
+				var step5Result = app.querySelector('[data-step-5-result]');
+				var step5Empty = app.querySelector('[data-step-5-empty]');
 				if (step5Result && step5Empty) {
 					renderResult(recipe, step5Result);
 					step5Empty.hidden = true;
+					if (step5Error) step5Error.hidden = true;
 					step5Result.hidden = false;
 					showView('wizard');
-					wizard.hidden = false;
+					if (wizard) wizard.hidden = false;
 					goStep(5);
 				} else {
 					renderResult(recipe);
@@ -585,9 +631,8 @@
 				}
 			})
 			.catch(function (err) {
-				errorView.textContent = (err && err.message) ? err.message : (LABELS.error || 'Es ist ein Fehler aufgetreten.');
-				errorView.hidden = false;
-				showView('error');
+				var message = getErrorMessage(err);
+				showRecipeError(message);
 			});
 	}
 
