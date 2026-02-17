@@ -260,6 +260,8 @@
 		return div.innerHTML;
 	}
 
+	const TOTAL_STEPS = 5;
+
 	function goStep(step) {
 		state.step = step;
 		app.querySelectorAll('.brotarchitekt-step').forEach((section, i) => {
@@ -271,12 +273,10 @@
 			el.classList.toggle('is-completed', n < step);
 			el.setAttribute('aria-selected', n === step);
 		});
-		const prevBtn = app.querySelector('[data-action="prev"]');
-		const nextBtn = app.querySelector('[data-action="next"]');
-		const calcBtn = app.querySelector('[data-action="calculate"]');
+		const prevBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="prev"]');
+		const nextBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="next"]');
 		if (prevBtn) prevBtn.hidden = step <= 1;
-		if (nextBtn) nextBtn.hidden = step >= 4;
-		if (calcBtn) calcBtn.hidden = step !== 4;
+		if (nextBtn) nextBtn.hidden = step >= TOTAL_STEPS;
 	}
 
 	function bindWizard() {
@@ -444,12 +444,12 @@
 			return;
 		}
 		if (a === 'next') {
-			goStep(Math.min(4, state.step + 1));
+			goStep(Math.min(TOTAL_STEPS, state.step + 1));
 			return;
 		}
 		if (a === 'skip-extras') {
 			state.extras = [];
-			app.querySelectorAll('[data-extras] .brotarchitekt-chip').forEach(c => c.classList.remove('is-selected'));
+			app.querySelectorAll('[data-extras] .brotarchitekt-extras-card').forEach(c => c.classList.remove('is-selected'));
 			goStep(4);
 			updateSummary();
 			return;
@@ -482,6 +482,10 @@
 		if (a === 'new-recipe') {
 			showView('wizard');
 			wizard.hidden = false;
+			const step5Empty = app.querySelector('[data-step-5-empty]');
+			const step5Result = app.querySelector('[data-step-5-result]');
+			if (step5Empty) step5Empty.hidden = false;
+			if (step5Result) step5Result.hidden = true;
 			goStep(1);
 			updateSummary();
 			return;
@@ -517,8 +521,19 @@
 		})
 			.then(res => res.ok ? res.json() : Promise.reject(new Error('Request failed')))
 			.then(recipe => {
-				renderResult(recipe);
-				showView('result');
+				const step5Result = app.querySelector('[data-step-5-result]');
+				const step5Empty = app.querySelector('[data-step-5-empty]');
+				if (step5Result && step5Empty) {
+					renderResult(recipe, step5Result);
+					step5Empty.hidden = true;
+					step5Result.hidden = false;
+					showView('wizard');
+					wizard.hidden = false;
+					goStep(5);
+				} else {
+					renderResult(recipe);
+					showView('result');
+				}
 			})
 			.catch(err => {
 				errorView.textContent = LABELS.error || 'Es ist ein Fehler aufgetreten.';
@@ -527,94 +542,92 @@
 			});
 	}
 
-	function renderResult(recipe) {
-		app.querySelector('[data-recipe-title]').textContent = recipe.name || '';
+	function renderResult(recipe, root) {
+		root = root || app;
+		const q = (sel) => root.querySelector(sel);
+
+		q('[data-recipe-title]').textContent = recipe.name || '';
 		const meta = recipe.meta || {};
 		const tagLabels = [meta.level, meta.time, meta.back].filter(Boolean);
-		const metaContainer = app.querySelector('[data-recipe-meta]');
-		metaContainer.innerHTML = tagLabels.map((t, i) => '<span class="brotarchitekt-tag' + (i === 0 ? ' brotarchitekt-tag--active' : '') + '">' + escapeHtml(t) + '</span>').join('');
+		const metaContainer = q('[data-recipe-meta]');
+		if (metaContainer) metaContainer.innerHTML = tagLabels.map((t, i) => '<span class="brotarchitekt-tag' + (i === 0 ? ' brotarchitekt-tag--active' : '') + '">' + escapeHtml(t) + '</span>').join('');
 
-		// Metrik-Karten: TA, Gesamtgewicht, Backzeit
 		const teaser = recipe.teaser || {};
 		const bakeDuration = (recipe.timeline && recipe.timeline.length) ? recipe.timeline.find(s => (s.label || '').indexOf('Backen') >= 0) : null;
 		const durationStr = bakeDuration ? (bakeDuration.duration >= 60 ? (Math.floor(bakeDuration.duration / 60) + ' Min.') : (bakeDuration.duration + ' Min.')) : (teaser.bakeTime || '—');
 		const metaCardsHtml = '<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">⚖</span><p class="brotarchitekt-metric-card-label">Teigausbeute</p><p class="brotarchitekt-metric-card-value">TA ' + (teaser.ta || '') + '</p></div>' +
 			'<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">🌡</span><p class="brotarchitekt-metric-card-label">Gesamtgewicht</p><p class="brotarchitekt-metric-card-value">' + (teaser.weight || '') + 'g</p></div>' +
 			'<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">🕐</span><p class="brotarchitekt-metric-card-label">Backzeit</p><p class="brotarchitekt-metric-card-value">' + durationStr + '</p></div>';
-		app.querySelector('[data-recipe-teaser]').innerHTML = metaCardsHtml;
+		const teaserEl = q('[data-recipe-teaser]');
+		if (teaserEl) teaserEl.innerHTML = metaCardsHtml;
 
-		// Zutaten mit CAPS-Überschriften (SAUERTEIG, BRÜHSTÜCK, HAUPTTEIG)
-		const ingContainer = app.querySelector('[data-ingredients]');
-		ingContainer.innerHTML = '<h3>Zutaten</h3>';
-		const groupTitles = { sourdough: 'SAUERTEIG', kochstueck: 'KOCHSTÜCK', bruehstueck: 'BRÜHSTÜCK', main: 'HAUPTTEIG' };
-		const groups = recipe.ingredients || {};
-		Object.keys(groups).forEach(key => {
-			const g = groups[key];
-			const section = document.createElement('div');
-			section.className = 'brotarchitekt-ingredients-group';
-			const title = groupTitles[key] || g.label.toUpperCase();
-			section.innerHTML = '<h3>' + escapeHtml(title) + '</h3><table class="brotarchitekt-ingredients-table"><tbody></tbody></table>';
-			const tbody = section.querySelector('tbody');
-			(g.items || []).forEach(item => {
-				const tr = document.createElement('tr');
-				var amountStr = item.amount + ' ' + (item.unit || 'g');
-if (item.percent != null && item.percent !== undefined) {
-	amountStr += ' (' + item.percent + ' %)';
-}
-tr.innerHTML = '<td>' + escapeHtml(item.name) + '</td><td>' + amountStr + '</td>';
-				tbody.appendChild(tr);
+		const ingContainer = q('[data-ingredients]');
+		if (ingContainer) {
+			ingContainer.innerHTML = '<h3>Zutaten</h3>';
+			const groupTitles = { sourdough: 'SAUERTEIG', kochstueck: 'KOCHSTÜCK', bruehstueck: 'BRÜHSTÜCK', main: 'HAUPTTEIG' };
+			const groups = recipe.ingredients || {};
+			Object.keys(groups).forEach(key => {
+				const g = groups[key];
+				const section = document.createElement('div');
+				section.className = 'brotarchitekt-ingredients-group';
+				const title = groupTitles[key] || g.label.toUpperCase();
+				section.innerHTML = '<h3>' + escapeHtml(title) + '</h3><table class="brotarchitekt-ingredients-table"><tbody></tbody></table>';
+				const tbody = section.querySelector('tbody');
+				(g.items || []).forEach(item => {
+					const tr = document.createElement('tr');
+					let amountStr = item.amount + ' ' + (item.unit || 'g');
+					if (item.percent != null && item.percent !== undefined) amountStr += ' (' + item.percent + ' %)';
+					tr.innerHTML = '<td>' + escapeHtml(item.name) + '</td><td>' + amountStr + '</td>';
+					tbody.appendChild(tr);
+				});
+				ingContainer.appendChild(section);
 			});
-			ingContainer.appendChild(section);
-		});
+		}
 
-		// Timeline (vertikal, Kreis links, letzter Schritt hervorgehoben)
-		const tlContainer = app.querySelector('[data-timeline]');
-		tlContainer.innerHTML = '<h3>Zeitplan</h3>';
-		const list = document.createElement('ol');
-		list.className = 'brotarchitekt-timeline-list';
-		const steps = recipe.timeline || [];
-		steps.forEach((step, idx) => {
-			const li = document.createElement('li');
-			const isLast = idx === steps.length - 1;
-			const content = '<div class="brotarchitekt-timeline-content"><strong>' + escapeHtml(step.time_formatted) + '</strong> ' + escapeHtml(step.label) + ' <span class="brotarchitekt-timeline-duration">(' + step.duration_formatted + ')</span><span class="brotarchitekt-timeline-desc">' + escapeHtml(step.desc || '') + '</span></div>';
-			li.innerHTML = content;
-			list.appendChild(li);
-		});
-		tlContainer.appendChild(list);
+		const tlContainer = q('[data-timeline]');
+		if (tlContainer) {
+			tlContainer.innerHTML = '<h3>Zeitplan</h3>';
+			const list = document.createElement('ol');
+			list.className = 'brotarchitekt-timeline-list';
+			(recipe.timeline || []).forEach((step) => {
+				const li = document.createElement('li');
+				li.innerHTML = '<div class="brotarchitekt-timeline-content"><strong>' + escapeHtml(step.time_formatted) + '</strong> ' + escapeHtml(step.label) + ' <span class="brotarchitekt-timeline-duration">(' + step.duration_formatted + ')</span><span class="brotarchitekt-timeline-desc">' + escapeHtml(step.desc || '') + '</span></div>';
+				list.appendChild(li);
+			});
+			tlContainer.appendChild(list);
+		}
 
-		// Backen
-		app.querySelector('[data-baking]').innerHTML = '<h3>Backhinweise</h3><p>' + escapeHtml(recipe.baking || '') + '</p>';
+		const bakingEl = q('[data-baking]');
+		if (bakingEl) bakingEl.innerHTML = '<h3>Backhinweise</h3><p>' + escapeHtml(recipe.baking || '') + '</p>';
 
-		// Debug-Bereich
-		const debugSection = app.querySelector('[data-debug]');
-		if (debugSection && recipe.debug) {
-			debugSection.hidden = false;
-
-			// Input-Zusammenfassung
-			const inputTable = app.querySelector('[data-debug-input]');
-			if (inputTable && recipe.debug.input) {
-				let inputHtml = '';
-				Object.entries(recipe.debug.input).forEach(([key, val]) => {
-					inputHtml += '<tr><td><strong>' + escapeHtml(key) + '</strong></td><td>' + escapeHtml(String(val)) + '</td></tr>';
-				});
-				inputTable.innerHTML = inputHtml;
-			}
-
-			// Entscheidungsprotokoll
-			const decTable = app.querySelector('[data-debug-decisions] tbody');
-			if (decTable && recipe.debug.decisions) {
-				let decHtml = '';
-				recipe.debug.decisions.forEach(d => {
-					decHtml += '<tr><td>' + escapeHtml(d.source) + '</td><td>' + escapeHtml(d.rule) + '</td><td>' + escapeHtml(d.result) + '</td></tr>';
-				});
-				decTable.innerHTML = decHtml;
+		const debugSection = q('[data-debug]');
+		if (debugSection) {
+			if (recipe.debug) {
+				debugSection.hidden = false;
+				const inputTable = q('[data-debug-input]');
+				if (inputTable && recipe.debug.input) {
+					let inputHtml = '';
+					Object.entries(recipe.debug.input).forEach(([key, val]) => {
+						inputHtml += '<tr><td><strong>' + escapeHtml(key) + '</strong></td><td>' + escapeHtml(String(val)) + '</td></tr>';
+					});
+					inputTable.innerHTML = inputHtml;
+				}
+				const decTable = q('[data-debug-decisions] tbody');
+				if (decTable && recipe.debug.decisions) {
+					decTable.innerHTML = recipe.debug.decisions.map(d => '<tr><td>' + escapeHtml(d.source) + '</td><td>' + escapeHtml(d.rule) + '</td><td>' + escapeHtml(d.result) + '</td></tr>').join('');
+				}
+			} else {
+				debugSection.hidden = true;
 			}
 		}
 	}
 
-	// Progress-Dots
-	app.querySelectorAll('.brotarchitekt-progress-dot').forEach((dot, i) => {
-		dot.addEventListener('click', () => goStep(i + 1));
+	// Progress-Steps: Klick auf Schritt wechselt dorthin
+	app.addEventListener('click', (e) => {
+		const stepBtn = e.target.closest('.brotarchitekt-progress-step');
+		if (stepBtn && stepBtn.dataset.step) {
+			goStep(parseInt(stepBtn.dataset.step, 10));
+		}
 	});
 
 	bindWizard();

@@ -77,6 +77,7 @@ final class Brotarchitekt_Plugin {
 			'step2Title'      => __( 'Triebmittel & Mehl', 'brotarchitekt' ),
 			'step3Title'      => __( 'Extras', 'brotarchitekt' ),
 			'step4Title'      => __( 'Backmethode', 'brotarchitekt' ),
+			'step5Title'      => __( 'Rezept', 'brotarchitekt' ),
 			'newRecipe'       => __( 'Neues Rezept', 'brotarchitekt' ),
 			'print'           => __( 'Drucken', 'brotarchitekt' ),
 			'calculate'       => __( 'Rezept berechnen', 'brotarchitekt' ),
@@ -143,6 +144,7 @@ final class Brotarchitekt_Plugin {
 						<button type="button" class="brotarchitekt-progress-step" data-step="2" aria-selected="false"><span class="brotarchitekt-progress-num">2</span><span class="brotarchitekt-progress-label"><?php esc_html_e( 'Mehl & Triebmittel', 'brotarchitekt' ); ?></span></button>
 						<button type="button" class="brotarchitekt-progress-step" data-step="3" aria-selected="false"><span class="brotarchitekt-progress-num">3</span><span class="brotarchitekt-progress-label"><?php esc_html_e( 'Extras', 'brotarchitekt' ); ?></span></button>
 						<button type="button" class="brotarchitekt-progress-step" data-step="4" aria-selected="false"><span class="brotarchitekt-progress-num">4</span><span class="brotarchitekt-progress-label"><?php esc_html_e( 'Backmethode', 'brotarchitekt' ); ?></span></button>
+						<button type="button" class="brotarchitekt-progress-step" data-step="5" aria-selected="false"><span class="brotarchitekt-progress-num">5</span><span class="brotarchitekt-progress-label"><?php esc_html_e( 'Rezept', 'brotarchitekt' ); ?></span></button>
 					</div>
 				</div>
 				<div class="brotarchitekt-summary-tags" data-summary-tags aria-hidden="true"></div>
@@ -280,12 +282,50 @@ final class Brotarchitekt_Plugin {
 						</div>
 						<p class="brotarchitekt-back-hint">🔥 <?php esc_html_e( 'Alle Methoden funktionieren gut – die Empfehlung basiert auf deinem Erfahrungslevel. Backe so, wie du dich am wohlsten fühlst!', 'brotarchitekt' ); ?></p>
 					</section>
+
+					<section class="brotarchitekt-step brotarchitekt-step--recipe" data-step="5" aria-hidden="true">
+						<h2 class="brotarchitekt-step-title"><?php esc_html_e( 'Rezept', 'brotarchitekt' ); ?></h2>
+						<p class="brotarchitekt-step-sub"><?php esc_html_e( 'Dein persönliches Brotrezept mit Mengen und Zeitplan.', 'brotarchitekt' ); ?></p>
+						<div class="brotarchitekt-step-5-empty" data-step-5-empty>
+							<p class="brotarchitekt-step-5-cta"><?php esc_html_e( 'Alle Angaben sind erfasst. Erstelle jetzt dein Rezept.', 'brotarchitekt' ); ?></p>
+							<button type="button" class="brotarchitekt-btn brotarchitekt-btn--primary brotarchitekt-btn--cta" data-action="calculate"><?php esc_html_e( 'Rezept erstellen', 'brotarchitekt' ); ?></button>
+						</div>
+						<div class="brotarchitekt-step-5-result" data-step-5-result hidden>
+							<div class="brotarchitekt-result-header">
+								<h3 class="brotarchitekt-recipe-title" data-recipe-title></h3>
+								<div class="brotarchitekt-recipe-tags" data-recipe-meta></div>
+								<div class="brotarchitekt-metric-cards" data-recipe-teaser></div>
+							</div>
+							<div class="brotarchitekt-result-body">
+								<section class="brotarchitekt-ingredients" data-ingredients></section>
+								<section class="brotarchitekt-timeline" data-timeline></section>
+								<section class="brotarchitekt-baking" data-baking></section>
+							</div>
+							<section class="brotarchitekt-debug" data-debug hidden>
+								<details>
+									<summary class="brotarchitekt-debug-toggle"><?php esc_html_e( 'Debug: Berechnungsdetails', 'brotarchitekt' ); ?></summary>
+									<div class="brotarchitekt-debug-content">
+										<h4><?php esc_html_e( 'Eingabeparameter', 'brotarchitekt' ); ?></h4>
+										<table class="brotarchitekt-debug-table" data-debug-input></table>
+										<h4><?php esc_html_e( 'Entscheidungsprotokoll', 'brotarchitekt' ); ?></h4>
+										<table class="brotarchitekt-debug-table" data-debug-decisions>
+											<thead><tr><th><?php esc_html_e( 'Modul', 'brotarchitekt' ); ?></th><th><?php esc_html_e( 'Regel', 'brotarchitekt' ); ?></th><th><?php esc_html_e( 'Ergebnis', 'brotarchitekt' ); ?></th></tr></thead>
+											<tbody></tbody>
+										</table>
+									</div>
+								</details>
+							</section>
+							<footer class="brotarchitekt-result-footer">
+								<button type="button" class="brotarchitekt-btn brotarchitekt-btn--outline" data-action="new-recipe"><span aria-hidden="true">↻</span> <?php esc_html_e( 'Neues Rezept', 'brotarchitekt' ); ?></button>
+								<button type="button" class="brotarchitekt-btn brotarchitekt-btn--footer-print" data-action="print"><span aria-hidden="true">🖨</span> <?php esc_html_e( 'Drucken', 'brotarchitekt' ); ?></button>
+							</footer>
+						</div>
+					</section>
 				</div>
 
 				<div class="brotarchitekt-wizard-nav">
 					<button type="button" class="brotarchitekt-btn brotarchitekt-btn--secondary" data-action="prev" hidden><span aria-hidden="true">←</span> <?php esc_html_e( 'Zurück', 'brotarchitekt' ); ?></button>
 					<button type="button" class="brotarchitekt-btn brotarchitekt-btn--primary" data-action="next"><?php esc_html_e( 'Weiter', 'brotarchitekt' ); ?> <span aria-hidden="true">→</span></button>
-					<button type="button" class="brotarchitekt-btn brotarchitekt-btn--primary" data-action="calculate" hidden><?php esc_html_e( 'Rezept erstellen', 'brotarchitekt' ); ?> <span aria-hidden="true">→</span></button>
 				</div>
 			</div>
 
