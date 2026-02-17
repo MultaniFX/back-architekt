@@ -186,7 +186,50 @@
 		});
 	}
 
-	const EXTRA_ICONS = { sunflower: '🌻', pumpkin: '🎃', sesame: '⚪', linseed: '🌾', oatmeal: '🌿', old_bread: '🍞', grist: '🥜' };
+	function svgIcon(name, cls) {
+		return (LUCIDE_SVGS[name] || '').replace('class="brotarchitekt-icon"', 'class="brotarchitekt-icon' + (cls ? ' ' + cls : '') + '"');
+	}
+
+	const LUCIDE_SVGS = {
+		'sprout': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/></svg>',
+		'cookie': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"/><path d="M8.5 8.5v.01"/><path d="M16 15.5v.01"/><path d="M12 12v.01"/><path d="M11 17v.01"/><path d="M7 14v.01"/></svg>',
+		'check-circle-2': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>',
+		'droplets': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>',
+		'weight': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><path d="M6.5 8a2 2 0 0 0-1.905 1.46L2.1 18.23A2 2 0 0 0 4 21h16a2 2 0 0 0 1.925-2.54L19.4 9.46A2 2 0 0 0 17.48 8Z"/></svg>',
+		'timer': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>',
+		'jar': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2.343"/><path d="M14 2v2.343"/><path d="M4.264 6.343c.594-.574 1.022-1.07 2.736-1.343h10c1.714.273 2.142.77 2.736 1.343C20.33 6.934 21 8.231 21 10v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4v-8c0-1.769.671-3.066 1.264-3.657Z"/><path d="M8 14c.22-.582 1.1-1 2-1 1.1 0 2 .672 2 1.5S11.1 16 10 16c-.9 0-1.78-.418-2-1"/><path d="M14 14c.22-.582 1.1-1 2-1 1.1 0 2 .672 2 1.5s-.9 1.5-2 1.5c-.9 0-1.78-.418-2-1"/></svg>',
+		'flame': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+		'utensils-crossed': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/></svg>',
+		'clock': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+		'hand': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v0"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 13"/></svg>',
+		'thermometer': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>',
+		'oven': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>',
+		'arrow-right': '<svg class="brotarchitekt-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>',
+	};
+
+	const TIMELINE_ICONS = {
+		'Sauerteig': 'jar',
+		'Brühstück': 'droplets',
+		'Kochstück': 'flame',
+		'Kneten': 'utensils-crossed',
+		'Fermentolyse': 'clock',
+		'Stockgare': 'clock',
+		'Stückgare': 'clock',
+		'Formen': 'hand',
+		'Vorheizen': 'thermometer',
+		'Backen': 'oven',
+		'Akklimatisieren': 'thermometer',
+	};
+
+	const EXTRA_ICONS_SVG = {
+		sunflower: 'sprout',
+		pumpkin: 'sprout',
+		sesame: 'sprout',
+		linseed: 'sprout',
+		oatmeal: 'sprout',
+		old_bread: 'cookie',
+		grist: 'sprout',
+	};
 
 	function renderExtras() {
 		const info = getLevelInfo();
@@ -201,13 +244,20 @@
 			card.className = 'brotarchitekt-extras-card';
 			card.dataset.extra = extra.id;
 			if (state.extras.includes(extra.id)) card.classList.add('is-selected');
-			const icon = document.createElement('span');
-			icon.className = 'brotarchitekt-extras-card-icon';
-			icon.textContent = EXTRA_ICONS[extra.id] || '•';
-			card.appendChild(icon);
+			const iconEl = document.createElement('span');
+			iconEl.className = 'brotarchitekt-extras-card-icon';
+			var iconName = EXTRA_ICONS_SVG[extra.id];
+			iconEl.innerHTML = iconName ? svgIcon(iconName) : svgIcon('sprout');
+			card.appendChild(iconEl);
 			const name = document.createElement('span');
 			name.textContent = extra.name;
 			card.appendChild(name);
+			if (state.extras.includes(extra.id)) {
+				var check = document.createElement('span');
+				check.className = 'brotarchitekt-extras-check';
+				check.innerHTML = svgIcon('check-circle-2');
+				card.appendChild(check);
+			}
 			card.addEventListener('click', () => {
 				const idx = state.extras.indexOf(extra.id);
 				if (idx >= 0) {
@@ -217,7 +267,17 @@
 				}
 				state.extras = state.extras.slice(0, maxExtras);
 				container.querySelectorAll('.brotarchitekt-extras-card').forEach(c => {
-					c.classList.toggle('is-selected', state.extras.includes(c.dataset.extra));
+					var isSelected = state.extras.includes(c.dataset.extra);
+					c.classList.toggle('is-selected', isSelected);
+					var existingCheck = c.querySelector('.brotarchitekt-extras-check');
+					if (isSelected && !existingCheck) {
+						var chk = document.createElement('span');
+						chk.className = 'brotarchitekt-extras-check';
+						chk.innerHTML = svgIcon('check-circle-2');
+						c.appendChild(chk);
+					} else if (!isSelected && existingCheck) {
+						existingCheck.remove();
+					}
 				});
 				if (counterEl) counterEl.textContent = state.extras.length + '/7 ' + (LABELS.extrasCounter || 'Extras ausgewählt — Brühstück wird automatisch berechnet');
 				updateSummary();
@@ -293,7 +353,14 @@
 		const prevBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="prev"]');
 		const nextBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="next"]');
 		if (prevBtn) prevBtn.hidden = step <= 1;
-		if (nextBtn) nextBtn.hidden = step >= TOTAL_STEPS;
+		if (nextBtn) {
+			nextBtn.hidden = step >= TOTAL_STEPS;
+			if (step === 4) {
+				nextBtn.innerHTML = 'Rezept erstellen ' + svgIcon('arrow-right');
+			} else {
+				nextBtn.innerHTML = (LABELS.next || 'Weiter') + ' ' + svgIcon('arrow-right');
+			}
+		}
 		// Zur „Seite" scrollen: Wizard-Container oder aktiven Schritt oben anzeigen
 		const stepsContainer = app.querySelector('.brotarchitekt-steps');
 		if (stepsContainer) {
@@ -322,38 +389,44 @@
 		const timeInput = app.querySelector('#ba-time');
 		const timeOutput = app.querySelector('#ba-time-value');
 		const hoursLabel = (LABELS.hours || 'Stunden').replace(/^.*\s/, '') || 'Stunden';
+		const timeVibeEl = app.querySelector('[data-time-vibe]');
+		function updateTimeVibe(hours) {
+			if (!timeVibeEl) return;
+			var vibe = '';
+			if (hours <= 6) vibe = 'Schnelles Feierabendbrot';
+			else if (hours <= 8) vibe = 'Entspannter Backtag';
+			else if (hours <= 12) vibe = 'Gem\u00FCtliches Tagesbrot';
+			else if (hours <= 24) vibe = '\u00DCber-Nacht-Brot mit Tiefgang';
+			else vibe = 'Slow Baking f\u00FCr Genie\u00DFer';
+			timeVibeEl.textContent = vibe;
+		}
 		if (timeInput && timeOutput) {
 			timeInput.value = state.timeBudget;
 			timeOutput.textContent = state.timeBudget + ' ' + (LABELS.hours || 'Stunden');
+			updateTimeVibe(state.timeBudget);
 			timeInput.addEventListener('input', () => {
 				state.timeBudget = parseInt(timeInput.value, 10);
 				timeOutput.textContent = state.timeBudget + ' ' + (LABELS.hours || 'Stunden');
+				updateTimeVibe(state.timeBudget);
 				const fridgeWrap = app.querySelector('[data-fridge-wrap]');
 				if (fridgeWrap) fridgeWrap.hidden = state.timeBudget < 12;
 				updateSummary();
 			});
 		}
 
-		// Level-Slider + Level-Info-Box (Name + Beschreibung)
-		const levelInput = app.querySelector('#ba-level');
-		const levelNameEl = app.querySelector('[data-level-name]');
-		const levelDescEl = app.querySelector('[data-level-desc]');
-		function updateLevelInfo() {
-			const L = LABELS.level || {};
-			const D = LABELS.levelDesc || {};
-			if (levelNameEl) levelNameEl.textContent = L[state.experienceLevel] || ('Level ' + state.experienceLevel);
-			if (levelDescEl) levelDescEl.textContent = D[state.experienceLevel] || '';
-		}
-		if (levelInput) {
-			levelInput.value = state.experienceLevel;
-			updateLevelInfo();
-			levelInput.addEventListener('input', () => {
-				state.experienceLevel = parseInt(levelInput.value, 10);
-				updateLevelInfo();
-				renderFlourSelectors();
-				renderExtras();
-				updateBackRecommended();
-				updateSummary();
+		// Level-Karten (statt Slider)
+		const levelCards = app.querySelector('[data-level-cards]');
+		if (levelCards) {
+			levelCards.querySelectorAll('.brotarchitekt-level-card').forEach(btn => {
+				btn.addEventListener('click', () => {
+					state.experienceLevel = parseInt(btn.dataset.level, 10);
+					levelCards.querySelectorAll('.brotarchitekt-level-card').forEach(c => c.classList.remove('is-selected'));
+					btn.classList.add('is-selected');
+					renderFlourSelectors();
+					renderExtras();
+					updateBackRecommended();
+					updateSummary();
+				});
 			});
 		}
 
@@ -669,9 +742,9 @@
 		const teaser = recipe.teaser || {};
 		const bakeDuration = (recipe.timeline && recipe.timeline.length) ? recipe.timeline.find(s => (s.label || '').indexOf('Backen') >= 0) : null;
 		const durationStr = bakeDuration ? (bakeDuration.duration >= 60 ? (Math.floor(bakeDuration.duration / 60) + ' Min.') : (bakeDuration.duration + ' Min.')) : (teaser.bakeTime || '—');
-		const metaCardsHtml = '<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">⚖</span><p class="brotarchitekt-metric-card-label">Teigausbeute</p><p class="brotarchitekt-metric-card-value">TA ' + (teaser.ta || '') + '</p></div>' +
-			'<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">🌡</span><p class="brotarchitekt-metric-card-label">Gesamtgewicht</p><p class="brotarchitekt-metric-card-value">' + (teaser.weight || '') + 'g</p></div>' +
-			'<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">🕐</span><p class="brotarchitekt-metric-card-label">Backzeit</p><p class="brotarchitekt-metric-card-value">' + durationStr + '</p></div>';
+		const metaCardsHtml = '<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">' + svgIcon('droplets') + '</span><p class="brotarchitekt-metric-card-label">Teigausbeute</p><p class="brotarchitekt-metric-card-value">TA ' + (teaser.ta || '') + '</p></div>' +
+			'<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">' + svgIcon('weight') + '</span><p class="brotarchitekt-metric-card-label">Gesamtgewicht</p><p class="brotarchitekt-metric-card-value">' + (teaser.weight || '') + 'g</p></div>' +
+			'<div class="brotarchitekt-metric-card"><span class="brotarchitekt-metric-card-icon">' + svgIcon('timer') + '</span><p class="brotarchitekt-metric-card-label">Backzeit</p><p class="brotarchitekt-metric-card-value">' + durationStr + '</p></div>';
 		const teaserEl = q('[data-recipe-teaser]');
 		if (teaserEl) teaserEl.innerHTML = metaCardsHtml;
 
@@ -705,7 +778,12 @@
 			list.className = 'brotarchitekt-timeline-list';
 			(recipe.timeline || []).forEach((step) => {
 				const li = document.createElement('li');
-				li.innerHTML = '<div class="brotarchitekt-timeline-content"><strong>' + escapeHtml(step.time_formatted) + '</strong> ' + escapeHtml(step.label) + ' <span class="brotarchitekt-timeline-duration">(' + step.duration_formatted + ')</span><span class="brotarchitekt-timeline-desc">' + escapeHtml(step.desc || '') + '</span></div>';
+				var tlIconName = null;
+				Object.keys(TIMELINE_ICONS).forEach(function(key) {
+					if ((step.label || '').indexOf(key) >= 0) tlIconName = TIMELINE_ICONS[key];
+				});
+				var tlIconHtml = tlIconName ? '<span class="brotarchitekt-timeline-icon">' + svgIcon(tlIconName) + '</span>' : '';
+				li.innerHTML = tlIconHtml + '<div class="brotarchitekt-timeline-content"><strong>' + escapeHtml(step.time_formatted) + '</strong> ' + escapeHtml(step.label) + ' <span class="brotarchitekt-timeline-duration">(' + step.duration_formatted + ')</span><span class="brotarchitekt-timeline-desc">' + escapeHtml(step.desc || '') + '</span></div>';
 				list.appendChild(li);
 			});
 			tlContainer.appendChild(list);

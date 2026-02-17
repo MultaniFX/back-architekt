@@ -1,5 +1,6 @@
 /**
- * Brotarchitekt – Design angelehnt an Screens (Erdtöne, warm, Karten-Layout)
+ * Brotarchitekt – Premium Konfigurator Design (v1.3.0)
+ * Warme Baeckerei-Aesthetik, Lucide SVG-Icons, grosszuegige Radien
  */
 
 :root {
@@ -8,16 +9,18 @@
 	--ba-accent: #c45c26;
 	--ba-accent-light: #e5884f;
 	--ba-secondary: #e8dcc8;
-	--ba-bg: #fbf8f2;
-	--ba-bg-card: #ede4d5;
+	--ba-bg: #faf7f2;
+	--ba-bg-card: #f5ede0;
 	--ba-bg-card-alt: #fffef9;
 	--ba-text: #2c2218;
 	--ba-text-muted: #5c5248;
 	--ba-footer: #4a3b30;
 	--ba-footer-btn: #6a5342;
-	--ba-radius: 14px;
-	--ba-radius-sm: 10px;
-	--ba-shadow: 0 2px 12px rgba(44, 34, 24, 0.08);
+	--ba-radius: 20px;
+	--ba-radius-sm: 14px;
+	--ba-shadow: 0 4px 24px rgba(44, 34, 24, 0.06);
+	--ba-shadow-hover: 0 8px 32px rgba(44, 34, 24, 0.12);
+	--ba-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 	--ba-font-head: 'Georgia', 'Times New Roman', serif;
 	--ba-font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
@@ -49,7 +52,43 @@
 }
 
 @media (min-width: 768px) {
-	.brotarchitekt { padding: 2rem; }
+	.brotarchitekt { padding: 2.5rem; }
+}
+
+/* ========== SVG Icon Base ========== */
+.brotarchitekt-icon {
+	width: 24px;
+	height: 24px;
+	stroke: currentColor;
+	fill: none;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	display: inline-block;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+.brotarchitekt-setting-icon .brotarchitekt-icon {
+	width: 28px;
+	height: 28px;
+	color: #fff;
+}
+.brotarchitekt-card-icon .brotarchitekt-icon {
+	width: 32px;
+	height: 32px;
+}
+.brotarchitekt-metric-card-icon .brotarchitekt-icon {
+	width: 28px;
+	height: 28px;
+	color: var(--ba-accent);
+}
+.brotarchitekt-btn .brotarchitekt-icon {
+	width: 18px;
+	height: 18px;
+}
+.brotarchitekt-recommended .brotarchitekt-icon {
+	width: 14px;
+	height: 14px;
 }
 
 /* ========== Landing ========== */
@@ -82,17 +121,18 @@
 	border-radius: var(--ba-radius);
 	cursor: pointer;
 	box-shadow: var(--ba-shadow);
-	transition: background 0.2s;
+	transition: background var(--ba-transition), box-shadow var(--ba-transition);
 	min-height: 48px;
 }
 .brotarchitekt-cta:hover {
 	background: var(--ba-primary-dark);
+	box-shadow: var(--ba-shadow-hover);
 }
 
 /* ========== Wizard Header ========== */
 .brotarchitekt-wizard-header {
 	text-align: center;
-	margin-bottom: 1.5rem;
+	margin-bottom: 2rem;
 }
 .brotarchitekt-wizard-title {
 	font-family: var(--ba-font-head);
@@ -106,9 +146,9 @@
 	margin: 0;
 }
 
-/* ========== Progress (wie Screens: Linie + 4 Schritte) ========== */
+/* ========== Progress ========== */
 .brotarchitekt-progress {
-	margin-bottom: 1rem;
+	margin-bottom: 1.5rem;
 }
 .brotarchitekt-progress-track {
 	display: flex;
@@ -123,9 +163,10 @@
 	top: 1rem;
 	left: 0;
 	right: 0;
-	height: 2px;
+	height: 3px;
 	background: var(--ba-secondary);
 	z-index: 0;
+	border-radius: 2px;
 }
 .brotarchitekt-progress-step {
 	display: flex;
@@ -152,7 +193,7 @@
 	background: var(--ba-bg-card);
 	color: var(--ba-text-muted);
 	border: 2px solid var(--ba-secondary);
-	transition: background 0.2s, border-color 0.2s, color 0.2s;
+	transition: background var(--ba-transition), border-color var(--ba-transition), color var(--ba-transition);
 }
 .brotarchitekt-progress-label {
 	font-size: 0.75rem;
@@ -180,7 +221,7 @@
 	overflow: hidden;
 }
 .brotarchitekt-progress-step.is-completed .brotarchitekt-progress-num::after {
-	content: '✓';
+	content: '\2713';
 	font-size: 0.9rem;
 	display: block;
 	line-height: 2rem;
@@ -195,7 +236,7 @@
 	flex-wrap: wrap;
 	gap: 0.5rem;
 	justify-content: center;
-	margin-bottom: 1.5rem;
+	margin-bottom: 2rem;
 }
 .brotarchitekt-tag {
 	display: inline-block;
@@ -207,7 +248,7 @@
 	font-size: 0.85rem;
 }
 
-/* ========== Steps: Eine Seite pro Schritt ========== */
+/* ========== Steps ========== */
 .brotarchitekt-steps {
 	min-height: 65vh;
 	position: relative;
@@ -230,14 +271,14 @@
 .brotarchitekt-step-sub {
 	color: var(--ba-text-muted);
 	font-size: 1rem;
-	margin: 0 0 1.5rem;
+	margin: 0 0 2rem;
 	text-align: center;
 }
 
 /* ========== Schritt 5: Rezept (Empty / Result) ========== */
 .brotarchitekt-step-5-empty {
 	text-align: center;
-	padding: 2rem 1rem;
+	padding: 2.5rem 1.5rem;
 	background: var(--ba-bg-card);
 	border-radius: var(--ba-radius);
 	margin-bottom: 1.5rem;
@@ -248,7 +289,7 @@
 	margin: 0 0 1.5rem;
 }
 .brotarchitekt-step-5-result .brotarchitekt-result-header {
-	margin-bottom: 1.5rem;
+	margin-bottom: 2rem;
 }
 .brotarchitekt-step-5-result .brotarchitekt-recipe-title {
 	font-size: 1.5rem;
@@ -263,17 +304,17 @@
 	flex-wrap: wrap;
 }
 
-/* ========== Schritt 1: Setting-Karten (Zeitbudget, Kühlschrank, Level) ========== */
+/* ========== Schritt 1: Setting-Karten ========== */
 .brotarchitekt-setting-cards {
 	display: flex;
 	flex-direction: column;
-	gap: 1rem;
-	margin-bottom: 1.5rem;
+	gap: 1.5rem;
+	margin-bottom: 2rem;
 }
 .brotarchitekt-setting-card {
 	background: var(--ba-bg-card);
 	border-radius: var(--ba-radius);
-	padding: 1.25rem;
+	padding: 1.5rem;
 	box-shadow: var(--ba-shadow);
 }
 .brotarchitekt-setting-card-head {
@@ -283,8 +324,8 @@
 	margin-bottom: 1rem;
 }
 .brotarchitekt-setting-icon {
-	width: 2.5rem;
-	height: 2.5rem;
+	width: 2.75rem;
+	height: 2.75rem;
 	border-radius: 50%;
 	background: var(--ba-accent);
 	color: #fff;
@@ -304,12 +345,50 @@
 	color: var(--ba-text-muted);
 	margin: 0;
 }
+
+/* ── Premium Slider Styling ── */
 .brotarchitekt-setting-card input[type="range"] {
+	-webkit-appearance: none;
+	appearance: none;
 	width: 100%;
-	height: 8px;
-	accent-color: var(--ba-accent);
-	margin: 0.5rem 0;
+	height: 12px;
+	border-radius: 6px;
+	background: var(--ba-secondary);
+	outline: none;
+	margin: 0.75rem 0;
+	cursor: pointer;
 }
+.brotarchitekt-setting-card input[type="range"]::-webkit-slider-thumb {
+	-webkit-appearance: none;
+	appearance: none;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--ba-accent);
+	border: 3px solid #fff;
+	box-shadow: 0 2px 8px rgba(44, 34, 24, 0.2);
+	cursor: pointer;
+	transition: transform var(--ba-transition), box-shadow var(--ba-transition);
+}
+.brotarchitekt-setting-card input[type="range"]::-webkit-slider-thumb:hover {
+	transform: scale(1.1);
+	box-shadow: 0 4px 12px rgba(44, 34, 24, 0.3);
+}
+.brotarchitekt-setting-card input[type="range"]::-moz-range-thumb {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: var(--ba-accent);
+	border: 3px solid #fff;
+	box-shadow: 0 2px 8px rgba(44, 34, 24, 0.2);
+	cursor: pointer;
+}
+.brotarchitekt-setting-card input[type="range"]::-moz-range-track {
+	height: 12px;
+	border-radius: 6px;
+	background: var(--ba-secondary);
+}
+
 .brotarchitekt-setting-value {
 	display: block;
 	font-size: clamp(1.5rem, 3vw, 2rem);
@@ -318,27 +397,88 @@
 	margin-top: 0.5rem;
 	text-align: center;
 }
+
+/* Vibe Label */
+.brotarchitekt-time-vibe {
+	display: block;
+	text-align: center;
+	font-size: 0.9rem;
+	color: var(--ba-text-muted);
+	font-style: italic;
+	margin-top: 0.25rem;
+	min-height: 1.4em;
+}
+
 .brotarchitekt-setting-card .brotarchitekt-toggle {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 	gap: 0.75rem;
 }
-.brotarchitekt-level-info {
+
+/* ── Level Cards ── */
+.brotarchitekt-setting-card--level {
+	text-align: center;
+}
+.brotarchitekt-setting-card--level .brotarchitekt-setting-title {
+	text-align: center;
+	margin-bottom: 0.25rem;
+}
+.brotarchitekt-setting-card--level .brotarchitekt-setting-desc {
+	text-align: center;
+	margin-bottom: 1.25rem;
+}
+.brotarchitekt-level-cards {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	gap: 0.75rem;
+}
+.brotarchitekt-level-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+	padding: 1rem 0.5rem;
+	border-radius: var(--ba-radius);
+	border: 2px solid var(--ba-secondary);
 	background: var(--ba-bg-card-alt);
-	border-radius: var(--ba-radius-sm);
-	padding: 0.75rem 1rem;
-	margin-top: 0.75rem;
+	cursor: pointer;
+	transition: border-color var(--ba-transition), background var(--ba-transition), transform var(--ba-transition), box-shadow var(--ba-transition);
+	font-family: inherit;
+	gap: 0.35rem;
 }
-.brotarchitekt-level-name {
-	display: block;
-	font-size: 1rem;
-	margin-bottom: 0.2rem;
+.brotarchitekt-level-card:hover {
+	border-color: var(--ba-accent-light);
+	box-shadow: var(--ba-shadow);
 }
-.brotarchitekt-level-desc {
-	font-size: 0.9rem;
+.brotarchitekt-level-card.is-selected {
+	border-color: var(--ba-accent);
+	background: rgba(196, 92, 38, 0.08);
+	transform: translateY(-2px);
+	box-shadow: var(--ba-shadow-hover);
+}
+.brotarchitekt-level-card-icon {
+	color: var(--ba-accent);
+	margin-bottom: 0.15rem;
+}
+.brotarchitekt-level-card-icon .brotarchitekt-icon {
+	width: 32px;
+	height: 32px;
+}
+.brotarchitekt-level-card-name {
+	font-weight: 700;
+	font-size: 0.85rem;
+	color: var(--ba-text);
+}
+.brotarchitekt-level-card-desc {
+	font-size: 0.75rem;
 	color: var(--ba-text-muted);
-	margin: 0;
+	line-height: 1.3;
+}
+@media (max-width: 600px) {
+	.brotarchitekt-level-cards {
+		grid-template-columns: repeat(3, 1fr);
+	}
 }
 
 /* Toggle (Kippschalter) */
@@ -355,7 +495,7 @@
 	background: #b0a898;
 	border-radius: 999px;
 	position: relative;
-	transition: background 0.2s;
+	transition: background var(--ba-transition);
 	flex-shrink: 0;
 }
 .brotarchitekt-toggle-slider::after {
@@ -368,7 +508,7 @@
 	top: 2px;
 	left: 2px;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-	transition: transform 0.2s;
+	transition: transform var(--ba-transition);
 }
 .brotarchitekt-toggle input:checked + .brotarchitekt-toggle-slider,
 .brotarchitekt-toggle-row input:checked + .brotarchitekt-toggle-slider {
@@ -379,12 +519,12 @@
 	transform: translateX(22px);
 }
 
-/* ========== Blöcke (Schritt 2: Triebmittel, Mehle, Mehlmenge) ========== */
+/* ========== Bloecke (Schritt 2) ========== */
 .brotarchitekt-block {
 	background: var(--ba-bg-card);
 	border-radius: var(--ba-radius);
-	padding: 1.25rem;
-	margin-bottom: 1rem;
+	padding: 1.5rem;
+	margin-bottom: 1.5rem;
 }
 .brotarchitekt-block-label {
 	display: block;
@@ -403,7 +543,7 @@
 	color: var(--ba-text-muted);
 }
 
-/* Triebmittel-/Back-Karten mit Icon + Titel + Sub */
+/* Triebmittel-/Back-Karten */
 .brotarchitekt-cards {
 	display: grid;
 	grid-template-columns: 1fr;
@@ -418,25 +558,32 @@
 	align-items: center;
 	justify-content: flex-start;
 	min-height: 80px;
-	padding: 1rem;
+	padding: 1.25rem 1rem;
 	background: var(--ba-bg-card-alt);
 	border: 2px solid var(--ba-secondary);
 	border-radius: var(--ba-radius);
 	cursor: pointer;
-	transition: border-color 0.2s, background 0.2s;
+	transition: border-color var(--ba-transition), background var(--ba-transition), transform var(--ba-transition), box-shadow var(--ba-transition);
 	font-family: inherit;
 	text-align: center;
 }
 .brotarchitekt-card:hover {
 	border-color: var(--ba-accent);
+	box-shadow: var(--ba-shadow);
 }
 .brotarchitekt-card.is-selected {
 	border-color: var(--ba-accent);
 	background: rgba(196, 92, 38, 0.08);
+	transform: scale(1.02);
+	box-shadow: var(--ba-shadow-hover);
 }
 .brotarchitekt-card-icon {
 	font-size: 1.5rem;
-	margin-bottom: 0.35rem;
+	margin-bottom: 0.5rem;
+	color: var(--ba-accent);
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
 }
 .brotarchitekt-card-title {
 	font-weight: 700;
@@ -448,9 +595,11 @@
 	margin-top: 0.2rem;
 }
 .brotarchitekt-recommended {
-	display: inline-block;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
 	margin-top: 0.5rem;
-	padding: 0.2rem 0.5rem;
+	padding: 0.25rem 0.6rem;
 	background: var(--ba-accent);
 	color: #fff;
 	border-radius: 999px;
@@ -458,7 +607,7 @@
 	font-weight: 600;
 }
 
-/* Backmethode-Karten: 1-spaltig, Icon links + Text rechts (wie Screen 4) */
+/* Backmethode-Karten: 1-spaltig */
 .brotarchitekt-cards--back {
 	grid-template-columns: 1fr !important;
 }
@@ -469,13 +618,17 @@
 	position: relative;
 	min-height: auto;
 	gap: 1rem;
-	padding: 1.25rem;
+	padding: 1.5rem;
 	flex-wrap: wrap;
 }
 .brotarchitekt-cards--back .brotarchitekt-card-icon {
 	font-size: 2rem;
 	margin-bottom: 0;
 	flex-shrink: 0;
+}
+.brotarchitekt-cards--back .brotarchitekt-card-icon .brotarchitekt-icon {
+	width: 36px;
+	height: 36px;
 }
 .brotarchitekt-cards--back .brotarchitekt-card-title {
 	font-size: 1.05rem;
@@ -494,14 +647,21 @@
 .brotarchitekt-back-hint {
 	font-size: 0.9rem;
 	color: var(--ba-text-muted);
-	margin: 1rem 0 0;
+	margin: 1.5rem 0 0;
 	background: var(--ba-bg-card);
 	border-radius: var(--ba-radius);
-	padding: 1rem 1.25rem;
+	padding: 1rem 1.5rem;
 	line-height: 1.5;
+	display: flex;
+	align-items: flex-start;
+	gap: 0.5rem;
+}
+.brotarchitekt-back-hint .brotarchitekt-icon {
+	flex-shrink: 0;
+	color: var(--ba-accent);
 }
 
-/* Chips (Sauerteig-Typ) mit Titel + Sub */
+/* Chips (Sauerteig-Typ) */
 .brotarchitekt-chips {
 	display: flex;
 	flex-wrap: wrap;
@@ -530,7 +690,7 @@
 	border-radius: var(--ba-radius-sm);
 	cursor: pointer;
 	font-size: 0.95rem;
-	transition: border-color 0.2s, background 0.2s;
+	transition: border-color var(--ba-transition), background var(--ba-transition);
 	font-family: inherit;
 }
 .brotarchitekt-chip:hover {
@@ -559,13 +719,13 @@
 	cursor: pointer;
 }
 
-/* Mehlmenge-Stepper (große Anzeige wie Screen) */
+/* Mehlmenge-Stepper */
 .brotarchitekt-stepper {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 1rem;
-	margin: 0.5rem 0;
+	gap: 1.25rem;
+	margin: 0.75rem 0;
 }
 .brotarchitekt-stepper-btn {
 	width: 48px;
@@ -576,7 +736,7 @@
 	font-size: 1.5rem;
 	cursor: pointer;
 	color: var(--ba-primary);
-	transition: background 0.2s;
+	transition: background var(--ba-transition), border-color var(--ba-transition);
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -584,6 +744,7 @@
 }
 .brotarchitekt-stepper-btn:hover {
 	background: var(--ba-secondary);
+	border-color: var(--ba-accent);
 }
 .brotarchitekt-stepper-value {
 	font-size: 2rem;
@@ -607,50 +768,77 @@
 .brotarchitekt-flour-selectors .brotarchitekt-field { margin-bottom: 0; }
 .brotarchitekt-select {
 	width: 100%;
-	padding: 0.6rem 0.75rem;
+	padding: 0.7rem 0.85rem;
 	border: 2px solid var(--ba-secondary);
 	border-radius: var(--ba-radius-sm);
 	background: var(--ba-bg-card-alt);
 	font-size: 1rem;
 	color: var(--ba-text);
+	transition: border-color var(--ba-transition);
+}
+.brotarchitekt-select:focus {
+	border-color: var(--ba-accent);
+	outline: none;
 }
 
-/* ========== Schritt 3: Extras-Grid (Karten mit Icon) ========== */
+/* ========== Schritt 3: Extras-Grid ========== */
 .brotarchitekt-extras-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	gap: 0.75rem;
-	margin-bottom: 1rem;
+	gap: 1rem;
+	margin-bottom: 1.5rem;
 }
 .brotarchitekt-extras-card {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	padding: 1rem;
+	padding: 1.25rem 1rem;
 	background: var(--ba-bg-card);
 	border: 2px solid rgba(196, 92, 38, 0.3);
 	border-radius: var(--ba-radius);
 	cursor: pointer;
-	transition: border-color 0.2s, background 0.2s;
+	transition: border-color var(--ba-transition), background var(--ba-transition), transform var(--ba-transition), box-shadow var(--ba-transition);
 	font-family: inherit;
 	text-align: center;
+	position: relative;
 }
 .brotarchitekt-extras-card:hover {
 	border-color: var(--ba-accent);
+	box-shadow: var(--ba-shadow);
 }
 .brotarchitekt-extras-card.is-selected {
 	border-color: var(--ba-accent);
 	background: rgba(196, 92, 38, 0.08);
+	transform: scale(1.02);
+	box-shadow: var(--ba-shadow-hover);
 }
 .brotarchitekt-extras-card-icon {
-	font-size: 1.75rem;
-	margin-bottom: 0.35rem;
+	margin-bottom: 0.5rem;
+	color: var(--ba-accent);
 }
-.brotarchitekt-extras-card span:last-child {
+.brotarchitekt-extras-card-icon .brotarchitekt-icon {
+	width: 28px;
+	height: 28px;
+}
+.brotarchitekt-extras-card span:last-child:not(.brotarchitekt-extras-check) {
 	font-size: 0.9rem;
 	font-weight: 500;
 }
+
+/* Extras Check-Marker */
+.brotarchitekt-extras-check {
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	color: var(--ba-accent);
+	line-height: 0;
+}
+.brotarchitekt-extras-check .brotarchitekt-icon {
+	width: 20px;
+	height: 20px;
+}
+
 .brotarchitekt-extras-counter {
 	font-size: 0.95rem;
 	color: var(--ba-text-muted);
@@ -667,7 +855,7 @@
 
 /* Notices */
 .brotarchitekt-notice {
-	padding: 0.75rem 1rem;
+	padding: 0.85rem 1.25rem;
 	border-radius: var(--ba-radius-sm);
 	margin: 0.75rem 0 0;
 	font-size: 0.95rem;
@@ -691,12 +879,11 @@
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-top: 2rem;
+	margin-top: 2.5rem;
 	padding-top: 1.5rem;
 	border-top: 1px solid var(--ba-secondary);
 	gap: 1rem;
 }
-/* Wenn "Zurück" hidden → "Weiter" volle Breite (Screen 1) */
 .brotarchitekt-wizard-nav [data-action="prev"][hidden] + [data-action="next"] {
 	width: 100%;
 	justify-content: center;
@@ -709,7 +896,7 @@
 	font-size: 1rem;
 	font-weight: 600;
 	cursor: pointer;
-	transition: background 0.2s;
+	transition: background var(--ba-transition), box-shadow var(--ba-transition);
 	font-family: inherit;
 	display: inline-flex;
 	align-items: center;
@@ -721,6 +908,7 @@
 }
 .brotarchitekt-btn--primary:hover {
 	background: var(--ba-primary-dark);
+	box-shadow: var(--ba-shadow-hover);
 }
 .brotarchitekt-btn--secondary {
 	background: var(--ba-bg-card-alt);
@@ -732,7 +920,7 @@
 	background: var(--ba-secondary);
 }
 
-/* ========== Ergebnis: Header, Tags, Metrik-Karten ========== */
+/* ========== Ergebnis ========== */
 .brotarchitekt-result-header {
 	margin-bottom: 2rem;
 }
@@ -750,7 +938,6 @@
 	justify-content: center;
 	margin-bottom: 1.5rem;
 }
-/* Alle Rezept-Tags dunkel gefüllt (wie Screen 5) */
 .brotarchitekt-recipe-tags .brotarchitekt-tag {
 	background: var(--ba-primary-dark);
 	color: #fff;
@@ -765,12 +952,13 @@
 .brotarchitekt-metric-card {
 	background: var(--ba-bg-card);
 	border-radius: var(--ba-radius);
-	padding: 1.25rem;
+	padding: 1.5rem;
 	text-align: center;
 	box-shadow: var(--ba-shadow);
 }
 .brotarchitekt-metric-card-icon {
-	font-size: 1.5rem;
+	display: flex;
+	justify-content: center;
 	margin-bottom: 0.5rem;
 }
 .brotarchitekt-metric-card-label {
@@ -786,21 +974,21 @@
 	font-family: 'Courier New', Courier, monospace;
 }
 
-/* Zutaten: Card-Container + Abschnitts-Überschriften in Orange/CAPS (wie Screen 5) */
+/* Zutaten */
 .brotarchitekt-ingredients {
 	background: var(--ba-bg-card-alt);
 	border-radius: var(--ba-radius);
-	padding: 1.5rem;
+	padding: 2rem;
 	box-shadow: var(--ba-shadow);
 }
 .brotarchitekt-ingredients > h3 {
 	font-family: var(--ba-font-head);
 	font-size: 1.25rem;
 	font-weight: 700;
-	margin: 0 0 1.25rem;
+	margin: 0 0 1.5rem;
 }
 .brotarchitekt-ingredients-group {
-	margin-bottom: 1.5rem;
+	margin-bottom: 1.75rem;
 }
 .brotarchitekt-ingredients-group:last-child {
 	margin-bottom: 0;
@@ -818,7 +1006,7 @@
 	border-collapse: collapse;
 }
 .brotarchitekt-ingredients-table td {
-	padding: 0.5rem 0.75rem 0.5rem 0;
+	padding: 0.6rem 0.75rem 0.6rem 0;
 	border-bottom: 1px solid var(--ba-secondary);
 }
 .brotarchitekt-ingredients-table td:last-child {
@@ -827,11 +1015,11 @@
 	white-space: nowrap;
 }
 
-/* ========== Zeitplan (vertikal, Kreis + Linie links, wie Screen 6) ========== */
+/* ========== Zeitplan (vertikal mit Icons) ========== */
 .brotarchitekt-timeline h3 {
 	font-size: 1.25rem;
 	font-weight: 700;
-	margin: 0 0 1rem;
+	margin: 0 0 1.5rem;
 }
 .brotarchitekt-timeline-list {
 	list-style: none;
@@ -842,38 +1030,39 @@
 .brotarchitekt-timeline-list li {
 	display: flex;
 	gap: 1rem;
-	padding-bottom: 1.25rem;
+	padding-bottom: 1.5rem;
 	align-items: flex-start;
 	position: relative;
-	padding-left: 2rem;
+	padding-left: 2.5rem;
 }
 /* Vertikale Verbindungslinie */
 .brotarchitekt-timeline-list li::before {
 	content: '';
 	position: absolute;
-	left: 0.4375rem;
+	left: 0.5625rem;
 	top: 0;
 	bottom: 0;
-	width: 2px;
+	width: 3px;
 	background: var(--ba-accent-light);
+	border-radius: 2px;
 }
 .brotarchitekt-timeline-list li:first-child::before {
-	top: 0.5rem;
+	top: 0.625rem;
 }
 .brotarchitekt-timeline-list li:last-child::before {
 	bottom: auto;
-	height: 0.5rem;
+	height: 0.625rem;
 }
 /* Kreise auf der Linie */
 .brotarchitekt-timeline-list li::after {
 	content: '';
 	position: absolute;
 	left: 0;
-	top: 0.2rem;
-	width: 1rem;
-	height: 1rem;
+	top: 0.15rem;
+	width: 1.25rem;
+	height: 1.25rem;
 	border-radius: 50%;
-	border: 2px solid var(--ba-accent-light);
+	border: 3px solid var(--ba-accent-light);
 	background: var(--ba-bg);
 	z-index: 1;
 }
@@ -881,10 +1070,41 @@
 	background: var(--ba-accent-light);
 	border-color: var(--ba-accent-light);
 }
+/* Alternating background */
+.brotarchitekt-timeline-list li:nth-child(even) .brotarchitekt-timeline-content {
+	background: rgba(245, 237, 224, 0.4);
+	border-radius: var(--ba-radius-sm);
+	padding: 0.5rem 0.75rem;
+	margin: -0.5rem -0.75rem;
+}
+
+/* Timeline Icon (inside circle) */
+.brotarchitekt-timeline-icon {
+	position: absolute;
+	left: -0.125rem;
+	top: -0.1rem;
+	width: 1.5rem;
+	height: 1.5rem;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--ba-bg);
+	border-radius: 50%;
+}
+.brotarchitekt-timeline-icon .brotarchitekt-icon {
+	width: 14px;
+	height: 14px;
+	color: var(--ba-accent);
+}
+/* When icon is present, hide the circle pseudo-element */
+.brotarchitekt-timeline-list li:has(.brotarchitekt-timeline-icon)::after {
+	display: none;
+}
+
 .brotarchitekt-timeline-content {
 	flex: 1;
 }
-/* Uhrzeit in Orange */
 .brotarchitekt-timeline-list strong {
 	display: inline-block;
 	margin-right: 0.35rem;
@@ -905,7 +1125,7 @@
 
 /* Baking */
 .brotarchitekt-result-body section {
-	margin-bottom: 2rem;
+	margin-bottom: 2.5rem;
 }
 .brotarchitekt-baking h3 {
 	font-size: 1.2rem;
@@ -916,23 +1136,24 @@
 	line-height: 1.5;
 }
 
-/* ========== Result Footer (dunkelbraun wie Screen) ========== */
+/* ========== Result Footer ========== */
 .brotarchitekt-result-footer {
 	background: var(--ba-footer);
 	color: #fff;
 	margin: 2rem -1.5rem -1.5rem;
-	padding: 1.25rem 1.5rem;
+	padding: 1.5rem;
 	display: flex;
 	justify-content: center;
 	gap: 1rem;
 	flex-wrap: wrap;
+	border-radius: 0 0 var(--ba-radius) var(--ba-radius);
 }
 @media (min-width: 768px) {
 	.brotarchitekt-result-footer {
-		margin-left: -2rem;
-		margin-right: -2rem;
-		padding-left: 2rem;
-		padding-right: 2rem;
+		margin-left: -2.5rem;
+		margin-right: -2.5rem;
+		padding-left: 2.5rem;
+		padding-right: 2.5rem;
 	}
 }
 .brotarchitekt-btn--outline {
@@ -956,7 +1177,7 @@
 .brotarchitekt-loading,
 .brotarchitekt-error {
 	text-align: center;
-	padding: 2rem;
+	padding: 3rem 2rem;
 }
 .brotarchitekt-error {
 	color: #a03030;
