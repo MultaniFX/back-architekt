@@ -555,7 +555,11 @@
 			if (step5Result) step5Result.hidden = true;
 			showView('wizard');
 			if (wizard) wizard.hidden = false;
-			goStep(5);
+			// Step 5 anzeigen ohne goStep (vermeidet erneuten fetchRecipe-Aufruf)
+			app.querySelectorAll('.brotarchitekt-step').forEach(function (section, i) {
+				section.setAttribute('aria-hidden', i + 1 !== 5);
+			});
+			state.step = 5;
 		} else {
 			if (errorView) {
 				errorView.textContent = message;
@@ -624,13 +628,25 @@
 					step5Empty.hidden = true;
 					if (step5Error) step5Error.hidden = true;
 					step5Result.hidden = false;
-					showView('wizard');
-					if (wizard) wizard.hidden = false;
-					goStep(5);
-				} else {
-					renderResult(recipe);
-					showView('result');
 				}
+				// Wizard + Step 5 anzeigen (ohne goStep um Endlosschleife zu vermeiden)
+				showView('wizard');
+				if (wizard) wizard.hidden = false;
+				// Step 5 sichtbar machen
+				app.querySelectorAll('.brotarchitekt-step').forEach(function (section, i) {
+					section.setAttribute('aria-hidden', i + 1 !== 5);
+				});
+				app.querySelectorAll('.brotarchitekt-progress-step').forEach(function (el, i) {
+					var n = i + 1;
+					el.classList.toggle('is-active', n === 5);
+					el.classList.toggle('is-completed', n < 5);
+					el.setAttribute('aria-selected', n === 5);
+				});
+				var prevBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="prev"]');
+				var nextBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="next"]');
+				if (prevBtn) prevBtn.hidden = false;
+				if (nextBtn) nextBtn.hidden = true;
+				state.step = 5;
 			})
 			.catch(function (err) {
 				state._fetching = false;
