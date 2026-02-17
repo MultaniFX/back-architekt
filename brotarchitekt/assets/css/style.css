@@ -204,15 +204,18 @@
 	min-height: 50vh;
 }
 .brotarchitekt-step-title {
-	font-size: 1.5rem;
+	font-family: var(--ba-font-head);
+	font-size: clamp(1.5rem, 3vw, 2rem);
 	font-weight: 700;
 	color: var(--ba-text);
 	margin: 0 0 0.25rem;
+	text-align: center;
 }
 .brotarchitekt-step-sub {
 	color: var(--ba-text-muted);
 	font-size: 1rem;
 	margin: 0 0 1.5rem;
+	text-align: center;
 }
 
 /* ========== Schritt 5: Rezept (Empty / Result) ========== */
@@ -293,10 +296,11 @@
 }
 .brotarchitekt-setting-value {
 	display: block;
-	font-size: 1.25rem;
+	font-size: clamp(1.5rem, 3vw, 2rem);
 	font-weight: 700;
 	color: var(--ba-accent);
 	margin-top: 0.5rem;
+	text-align: center;
 }
 .brotarchitekt-setting-card .brotarchitekt-toggle {
 	display: flex;
@@ -438,23 +442,41 @@
 	font-weight: 600;
 }
 
-/* Backmethode-Karten (größer, mit Beschreibung) */
+/* Backmethode-Karten: 1-spaltig, Icon links + Text rechts (wie Screen 4) */
+.brotarchitekt-cards--back {
+	grid-template-columns: 1fr !important;
+}
 .brotarchitekt-cards--back .brotarchitekt-card {
+	flex-direction: row;
 	align-items: flex-start;
 	text-align: left;
 	position: relative;
-	min-height: 100px;
+	min-height: auto;
+	gap: 1rem;
+	padding: 1.25rem;
+}
+.brotarchitekt-cards--back .brotarchitekt-card-icon {
+	font-size: 2rem;
+	margin-bottom: 0;
+	flex-shrink: 0;
+}
+.brotarchitekt-cards--back .brotarchitekt-card-title {
+	font-size: 1.05rem;
 }
 .brotarchitekt-card--back .brotarchitekt-recommended {
 	position: absolute;
-	top: 0.5rem;
-	right: 0.5rem;
+	top: 0.75rem;
+	right: 0.75rem;
 	margin: 0;
 }
 .brotarchitekt-back-hint {
 	font-size: 0.9rem;
 	color: var(--ba-text-muted);
 	margin: 1rem 0 0;
+	background: var(--ba-bg-card);
+	border-radius: var(--ba-radius);
+	padding: 1rem 1.25rem;
+	line-height: 1.5;
 }
 
 /* Chips (Sauerteig-Typ) mit Titel + Sub */
@@ -493,8 +515,15 @@
 	border-color: var(--ba-accent);
 }
 .brotarchitekt-chip.is-selected {
-	background: rgba(196, 92, 38, 0.12);
+	background: var(--ba-accent);
 	border-color: var(--ba-accent);
+	color: #fff;
+}
+.brotarchitekt-chip.is-selected .brotarchitekt-chip-title {
+	color: #fff;
+}
+.brotarchitekt-chip.is-selected .brotarchitekt-chip-sub {
+	color: rgba(255, 255, 255, 0.8);
 }
 
 .brotarchitekt-field--toggle-row {
@@ -539,6 +568,7 @@
 	font-weight: 700;
 	min-width: 3ch;
 	text-align: center;
+	color: var(--ba-accent);
 }
 .brotarchitekt-stepper-unit {
 	font-size: 1.25rem;
@@ -603,11 +633,14 @@
 	font-size: 0.95rem;
 	color: var(--ba-text-muted);
 	margin: 0 0 0.5rem;
+	text-align: center;
 }
 .brotarchitekt-skip-hint {
 	font-size: 0.9rem;
 	color: var(--ba-text-muted);
 	margin: 0;
+	text-align: center;
+	font-style: italic;
 }
 
 /* Notices */
@@ -635,6 +668,11 @@
 	padding-top: 1.5rem;
 	border-top: 1px solid var(--ba-secondary);
 	gap: 1rem;
+}
+/* Wenn "Zurück" hidden → "Weiter" volle Breite (Screen 1) */
+.brotarchitekt-wizard-nav [data-action="prev"][hidden] + [data-action="next"] {
+	width: 100%;
+	justify-content: center;
 }
 .brotarchitekt-btn {
 	padding: 0.75rem 1.5rem;
@@ -685,7 +723,8 @@
 	justify-content: center;
 	margin-bottom: 1.5rem;
 }
-.brotarchitekt-recipe-tags .brotarchitekt-tag--active {
+/* Alle Rezept-Tags dunkel gefüllt (wie Screen 5) */
+.brotarchitekt-recipe-tags .brotarchitekt-tag {
 	background: var(--ba-primary-dark);
 	color: #fff;
 	border-color: var(--ba-primary-dark);
@@ -716,11 +755,28 @@
 	font-size: 1.5rem;
 	font-weight: 700;
 	color: var(--ba-text);
+	font-variant-numeric: tabular-nums;
+	font-family: 'Courier New', Courier, monospace;
 }
 
-/* Zutaten: Abschnitts-Überschriften in Orange/CAPS */
+/* Zutaten: Card-Container + Abschnitts-Überschriften in Orange/CAPS (wie Screen 5) */
+.brotarchitekt-ingredients {
+	background: var(--ba-bg-card-alt);
+	border-radius: var(--ba-radius);
+	padding: 1.5rem;
+	box-shadow: var(--ba-shadow);
+}
+.brotarchitekt-ingredients > h3 {
+	font-family: var(--ba-font-head);
+	font-size: 1.25rem;
+	font-weight: 700;
+	margin: 0 0 1.25rem;
+}
 .brotarchitekt-ingredients-group {
 	margin-bottom: 1.5rem;
+}
+.brotarchitekt-ingredients-group:last-child {
+	margin-bottom: 0;
 }
 .brotarchitekt-ingredients-group h3 {
 	font-size: 0.85rem;
@@ -732,19 +788,19 @@
 }
 .brotarchitekt-ingredients-table {
 	width: 100%;
-	max-width: 420px;
 	border-collapse: collapse;
 }
 .brotarchitekt-ingredients-table td {
-	padding: 0.4rem 0.75rem 0.4rem 0;
+	padding: 0.5rem 0.75rem 0.5rem 0;
 	border-bottom: 1px solid var(--ba-secondary);
 }
 .brotarchitekt-ingredients-table td:last-child {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
 }
 
-/* ========== Zeitplan (vertikal, Kreis links) ========== */
+/* ========== Zeitplan (vertikal, Kreis + Linie links, wie Screen 6) ========== */
 .brotarchitekt-timeline h3 {
 	font-size: 1.25rem;
 	font-weight: 700;
@@ -754,33 +810,58 @@
 	list-style: none;
 	padding: 0;
 	margin: 0;
+	position: relative;
 }
 .brotarchitekt-timeline-list li {
 	display: flex;
 	gap: 1rem;
-	margin-bottom: 1.25rem;
+	padding-bottom: 1.25rem;
 	align-items: flex-start;
+	position: relative;
+	padding-left: 2rem;
 }
+/* Vertikale Verbindungslinie */
 .brotarchitekt-timeline-list li::before {
 	content: '';
+	position: absolute;
+	left: 0.4375rem;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	background: var(--ba-accent-light);
+}
+.brotarchitekt-timeline-list li:first-child::before {
+	top: 0.5rem;
+}
+.brotarchitekt-timeline-list li:last-child::before {
+	bottom: auto;
+	height: 0.5rem;
+}
+/* Kreise auf der Linie */
+.brotarchitekt-timeline-list li::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0.2rem;
 	width: 1rem;
 	height: 1rem;
 	border-radius: 50%;
 	border: 2px solid var(--ba-accent-light);
-	background: transparent;
-	flex-shrink: 0;
-	margin-top: 0.25rem;
+	background: var(--ba-bg);
+	z-index: 1;
 }
-.brotarchitekt-timeline-list li:last-child::before {
+.brotarchitekt-timeline-list li:last-child::after {
 	background: var(--ba-accent-light);
 	border-color: var(--ba-accent-light);
 }
 .brotarchitekt-timeline-content {
 	flex: 1;
 }
+/* Uhrzeit in Orange */
 .brotarchitekt-timeline-list strong {
 	display: inline-block;
 	margin-right: 0.35rem;
+	color: var(--ba-accent);
 }
 .brotarchitekt-timeline-duration {
 	font-size: 0.9rem;
