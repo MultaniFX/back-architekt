@@ -32,6 +32,22 @@
 	min-height: 60vh;
 }
 
+/* Theme-Override: text-transform reset (WordPress-Themes setzen oft uppercase) */
+.brotarchitekt,
+.brotarchitekt * {
+	text-transform: none !important;
+	letter-spacing: normal !important;
+}
+/* Explizit uppercase nur wo gewollt */
+.brotarchitekt .brotarchitekt-ingredients-group h3 {
+	text-transform: uppercase !important;
+	letter-spacing: 0.05em !important;
+}
+.brotarchitekt .brotarchitekt-debug-content h4 {
+	text-transform: uppercase !important;
+	letter-spacing: 0.05em !important;
+}
+
 @media (min-width: 768px) {
 	.brotarchitekt { padding: 2rem; }
 }
@@ -454,6 +470,7 @@
 	min-height: auto;
 	gap: 1rem;
 	padding: 1.25rem;
+	flex-wrap: wrap;
 }
 .brotarchitekt-cards--back .brotarchitekt-card-icon {
 	font-size: 2rem;
@@ -462,6 +479,11 @@
 }
 .brotarchitekt-cards--back .brotarchitekt-card-title {
 	font-size: 1.05rem;
+	width: calc(100% - 4rem);
+}
+.brotarchitekt-cards--back .brotarchitekt-card-sub {
+	width: 100%;
+	padding-left: 3rem;
 }
 .brotarchitekt-card--back .brotarchitekt-recommended {
 	position: absolute;

@@ -277,10 +277,26 @@
 		const nextBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="next"]');
 		if (prevBtn) prevBtn.hidden = step <= 1;
 		if (nextBtn) nextBtn.hidden = step >= TOTAL_STEPS;
-		// Zur „Seite“ scrollen: Wizard-Container oder aktiven Schritt oben anzeigen
+		// Zur „Seite" scrollen: Wizard-Container oder aktiven Schritt oben anzeigen
 		const stepsContainer = app.querySelector('.brotarchitekt-steps');
 		if (stepsContainer) {
 			stepsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
+
+		// Step 5: Rezept automatisch berechnen
+		if (step === 5) {
+			// State aus DOM synchronisieren
+			app.querySelectorAll('[data-main-flours] select').forEach((sel, i) => {
+				if (sel.value) state.mainFlours[i] = sel.value;
+			});
+			state.mainFlours = state.mainFlours.filter(Boolean);
+			app.querySelectorAll('[data-side-flours] select').forEach((sel, i) => {
+				if (sel.value) state.sideFlours[i] = sel.value;
+			});
+			state.sideFlours = state.sideFlours.filter(Boolean);
+			const flourInputEl = app.querySelector('[data-flour-amount-input]');
+			if (flourInputEl) state.flourAmount = parseInt(flourInputEl.value, 10) || 500;
+			fetchRecipe();
 		}
 	}
 
@@ -636,5 +652,13 @@
 	});
 
 	bindWizard();
+
+	// Direkt Wizard starten (kein Landing-Screen)
+	showView('wizard');
+	if (wizard) wizard.hidden = false;
+	renderFlourSelectors();
+	renderExtras();
+	updateBackRecommended();
+	goStep(1);
 	updateSummary();
 })();

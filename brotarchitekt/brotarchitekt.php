@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'BROTARCHITEKT_VERSION', '1.1.0' );
+define( 'BROTARCHITEKT_VERSION', '1.2.0' );
 define( 'BROTARCHITEKT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BROTARCHITEKT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
@@ -126,8 +126,8 @@ final class Brotarchitekt_Plugin {
 		wp_enqueue_script( 'brotarchitekt' );
 		ob_start();
 		?>
-		<div id="brotarchitekt-app" class="brotarchitekt" data-state="landing">
-			<div class="brotarchitekt-landing" data-view="landing">
+		<div id="brotarchitekt-app" class="brotarchitekt" data-state="wizard">
+			<div class="brotarchitekt-landing" data-view="landing" hidden>
 				<h1 class="brotarchitekt-hero-title"><?php esc_html_e( 'Der Brot-Architekt', 'brotarchitekt' ); ?></h1>
 				<p class="brotarchitekt-hero-sub"><?php esc_html_e( 'Bau dir dein eigenes Brot — Schritt für Schritt. Grammgenaue Rezepte mit Zeitplan, perfekt abgestimmt auf deine Erfahrung.', 'brotarchitekt' ); ?></p>
 				<button type="button" class="brotarchitekt-cta" data-action="start-wizard"><?php esc_html_e( 'Los geht\'s', 'brotarchitekt' ); ?></button>
@@ -286,7 +286,7 @@ final class Brotarchitekt_Plugin {
 					<section class="brotarchitekt-step brotarchitekt-step--recipe" data-step="5" aria-hidden="true">
 						<h2 class="brotarchitekt-step-title"><?php esc_html_e( 'Rezept', 'brotarchitekt' ); ?></h2>
 						<p class="brotarchitekt-step-sub"><?php esc_html_e( 'Dein persönliches Brotrezept mit Mengen und Zeitplan.', 'brotarchitekt' ); ?></p>
-						<div class="brotarchitekt-step-5-empty" data-step-5-empty>
+						<div class="brotarchitekt-step-5-empty" data-step-5-empty hidden>
 							<p class="brotarchitekt-step-5-cta"><?php esc_html_e( 'Alle Angaben sind erfasst. Erstelle jetzt dein Rezept.', 'brotarchitekt' ); ?></p>
 							<button type="button" class="brotarchitekt-btn brotarchitekt-btn--primary brotarchitekt-btn--cta" data-action="calculate"><?php esc_html_e( 'Rezept erstellen', 'brotarchitekt' ); ?></button>
 						</div>
