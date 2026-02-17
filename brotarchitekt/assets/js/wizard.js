@@ -300,8 +300,8 @@
 			stepsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
 
-		// Step 5: Rezept automatisch berechnen
-		if (step === 5) {
+		// Step 5: Rezept automatisch berechnen (nur wenn nicht bereits geladen)
+		if (step === 5 && !state._fetching) {
 			// State aus DOM synchronisieren
 			app.querySelectorAll('[data-main-flours] select').forEach((sel, i) => {
 				if (sel.value) state.mainFlours[i] = sel.value;
@@ -566,6 +566,7 @@
 	}
 
 	function fetchRecipe() {
+		state._fetching = true;
 		var step5Error = app.querySelector('[data-step-5-error]');
 		if (step5Error) {
 			step5Error.hidden = true;
@@ -612,6 +613,7 @@
 				});
 			})
 			.then(function (recipe) {
+				state._fetching = false;
 				if (!recipe || typeof recipe !== 'object') {
 					throw new Error('Ungültige Rezept-Antwort vom Server.');
 				}
@@ -631,6 +633,7 @@
 				}
 			})
 			.catch(function (err) {
+				state._fetching = false;
 				var message = getErrorMessage(err);
 				showRecipeError(message);
 			});
