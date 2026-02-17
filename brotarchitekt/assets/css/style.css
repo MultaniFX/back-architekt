@@ -191,7 +191,18 @@
 	font-size: 0.85rem;
 }
 
-/* ========== Steps: Titel + Untertitel ========== */
+/* ========== Steps: Eine Seite pro Schritt ========== */
+.brotarchitekt-steps {
+	min-height: 65vh;
+	position: relative;
+}
+.brotarchitekt-step[aria-hidden="true"] {
+	display: none !important;
+}
+.brotarchitekt-step[aria-hidden="false"] {
+	display: block;
+	min-height: 50vh;
+}
 .brotarchitekt-step-title {
 	font-size: 1.5rem;
 	font-weight: 700;

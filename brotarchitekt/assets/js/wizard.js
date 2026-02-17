@@ -277,6 +277,11 @@
 		const nextBtn = app.querySelector('.brotarchitekt-wizard-nav [data-action="next"]');
 		if (prevBtn) prevBtn.hidden = step <= 1;
 		if (nextBtn) nextBtn.hidden = step >= TOTAL_STEPS;
+		// Zur „Seite“ scrollen: Wizard-Container oder aktiven Schritt oben anzeigen
+		const stepsContainer = app.querySelector('.brotarchitekt-steps');
+		if (stepsContainer) {
+			stepsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		}
 	}
 
 	function bindWizard() {
