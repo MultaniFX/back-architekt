@@ -18,7 +18,7 @@ class TimelineBuilder {
 		$from_fridge = !empty($ctx->input['bakeFromFridge']);
 		$time_budget_h = (int) $ctx->input['timeBudget'];
 
-		$ctx->log('Timeline', 'Zeitbudget', $time_budget_h . 'h gesamt (inkl. ST-Vorbereitung)');
+		$ctx->log('Timeline', Lang::get('summary_time'), $time_budget_h . 'h gesamt (inkl. ST-Vorbereitung)');
 
 		$this->add_sourdough_steps();
 		$this->add_parallel_steps();
@@ -29,7 +29,7 @@ class TimelineBuilder {
 		$stockgare_total = $this->compute_stockgare_minutes();
 
 		$ctx->log('Timeline', 'F.3: Stretch & Fold', 'S&F ' . $sf_minutes . ' min verbraucht');
-		$ctx->log('Timeline', 'F.4: Stockgare gesamt', $stockgare_total . ' min (davon S&F ' . $sf_minutes . ' min, Rest ' . max(0, $stockgare_total - $sf_minutes) . ' min)');
+		$ctx->log('Timeline', 'F.4: ' . Lang::get('tl_stockgare') . ' gesamt', $stockgare_total . ' min (davon S&F ' . $sf_minutes . ' min, Rest ' . max(0, $stockgare_total - $sf_minutes) . ' min)');
 
 		if ($ctx->uses_fridge && !$from_fridge) {
 			$ctx->log('Timeline', 'F.6: Gaervariante', 'Kalte Stockgare (Normal)');
@@ -63,10 +63,10 @@ class TimelineBuilder {
 		$time_budget_h = (int) $ctx->input['timeBudget'];
 
 		if ($leavening === 'yeast') return;
-		if ($st_ready) { $ctx->log('Timeline', 'C.6: ST bereit', 'Auffrischung + Ansetzen entfallen'); return; }
+		if ($st_ready) { $ctx->log('Timeline', 'C.6: ST bereit', Lang::get('tl_sourdough_ready')); return; }
 
 		if ($time_budget_h >= 8) {
-			$this->step('Sauerteig auffrischen', 240, 'Anstellgut mit Mehl und Wasser im Verhältnis 1:3:3 (bzw. 1:2:1 bei Lievito Madre) mischen. 4 Stunden bei Raumtemperatur reifen lassen.');
+			$this->step(Lang::get('tl_sourdough_refresh'), 240, Lang::get('tl_sourdough_refresh_desc'));
 		}
 
 		if ($time_budget_h >= 24) $st_duration = 720;
@@ -74,7 +74,7 @@ class TimelineBuilder {
 		elseif ($time_budget_h >= 8) $st_duration = 240;
 		else $st_duration = 360;
 
-		$this->step('Sauerteig ansetzen', $st_duration, 'Sauerteig mit Mehl und Wasser mischen. Reifen lassen bis er deutlich aufgeht.', false);
+		$this->step(Lang::get('tl_sourdough_set'), $st_duration, Lang::get('tl_sourdough_set_desc'), false);
 	}
 
 	private function add_parallel_steps(): void {
@@ -87,19 +87,19 @@ class TimelineBuilder {
 		if (!empty($extras) && $ctx->bruehstueck_available) {
 			$has_vorteig = true;
 			if ($has_st_step) {
-				$this->step_parallel('Brühstück ansetzen', 120, 'Extras mit kochendem Wasser übergießen, quellen und abkühlen lassen (mind. 2 Stunden).');
+				$this->step_parallel(Lang::get('tl_bruehstueck'), 120, Lang::get('tl_bruehstueck_desc'));
 			} else {
-				$this->step('Brühstück ansetzen', 120, 'Extras mit kochendem Wasser übergießen, quellen und abkühlen lassen (mind. 2 Stunden).');
+				$this->step(Lang::get('tl_bruehstueck'), 120, Lang::get('tl_bruehstueck_desc'));
 			}
 		}
 
 		if ($ctx->has_kochstueck) {
 			if ($has_st_step) {
-				$this->step_parallel('Kochstück zubereiten (Tangzhong)', 120, 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen (mind. 2 Stunden gesamt).');
+				$this->step_parallel(Lang::get('tl_kochstueck'), 120, Lang::get('tl_kochstueck_desc'));
 			} elseif (!$has_vorteig) {
-				$this->step('Kochstück zubereiten (Tangzhong)', 120, 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen (mind. 2 Stunden gesamt).');
+				$this->step(Lang::get('tl_kochstueck'), 120, Lang::get('tl_kochstueck_desc'));
 			} else {
-				$this->step_parallel('Kochstück zubereiten (Tangzhong)', 120, 'Mehl und Wasser im Topf unter Rühren auf 65°C erhitzen bis die Masse puddingartig eindickt. Abkühlen lassen (mind. 2 Stunden gesamt).');
+				$this->step_parallel(Lang::get('tl_kochstueck'), 120, Lang::get('tl_kochstueck_desc'));
 			}
 			$has_vorteig = true;
 		}
@@ -109,21 +109,21 @@ class TimelineBuilder {
 
 	private function add_fermentolyse(): void {
 		if (!$this->needs_fermentolyse()) return;
-		$this->step('Fermentolyse (15 min)', 15, 'Mehl und Wasser mit Triebmittel grob vermischen. Noch kein Salz! 15 Minuten ruhen lassen.');
+		$this->step(Lang::get('tl_fermentolyse'), 15, Lang::get('tl_fermentolyse_desc'));
 	}
 
 	private function add_kneading(): void {
 		if ($this->ctx->rye_share >= 75) {
-			$this->step('Teig mischen (Roggen)', 4, 'Alle Zutaten in einer Schüssel 3–5 Minuten kräftig zusammenrühren. Roggenteig nicht kneten wie Weizen.');
+			$this->step(Lang::get('tl_knead_rye'), 4, Lang::get('tl_knead_rye_desc'));
 		} else {
-			$this->step('Kneten', 12, 'Teig auf bemehlte Fläche geben. 2–3 min langsam, dann 2–3 min kräftiger kneten. Salz zugeben, weitere 4–8 min kneten bis glatt und elastisch.');
+			$this->step(Lang::get('tl_knead'), 12, Lang::get('tl_knead_desc'));
 		}
 	}
 
 	private function add_stretch_fold(): int {
 		if ($this->ctx->rye_share >= 75) return 0;
 		for ($i = 1; $i <= 3; $i++) {
-			$this->step('Stretch & Fold Runde ' . $i, 15, 'Teig in der Schüssel: eine Seite hochziehen, zur Mitte falten. Schüssel 90° drehen, wiederholen. 4x (Nord, Süd, Ost, West). Abdecken, 15 Min warten.');
+			$this->step(Lang::get('tl_stretch_fold', $i), 15, Lang::get('tl_stretch_fold_desc'));
 		}
 		return 45;
 	}
@@ -132,15 +132,15 @@ class TimelineBuilder {
 		$ctx = $this->ctx;
 		$rest = max(0, $stockgare_total - $sf_minutes);
 		if ($rest > 0) {
-			$label = $sf_minutes > 0 ? 'Restliche Stockgare' : 'Stockgare';
-			$this->step($label, $rest, 'Teig abdecken und gehen lassen.');
+			$label = $sf_minutes > 0 ? Lang::get('tl_stockgare_rest') : Lang::get('tl_stockgare');
+			$this->step($label, $rest, Lang::get('tl_stockgare_desc'));
 		}
 		$this->add_forming();
 		$stueck_min = $ctx->rye_share >= 75 ? 150 : 90;
 		$desc = $ctx->rye_share >= 75
-			? 'Brot im Gärkörbchen gehen lassen. Fertig wenn feine Risse im Mehl auf der Oberfläche sichtbar werden.'
-			: 'Geformtes Brot abdecken und gehen lassen. Fingertest: Delle soll langsam zurückgehen.';
-		$this->step('Stückgare', $stueck_min, $desc);
+			? Lang::get('tl_stueckgare_rye_desc')
+			: Lang::get('tl_stueckgare_desc');
+		$this->step(Lang::get('tl_stueckgare'), $stueck_min, $desc);
 	}
 
 	private function build_cold_stock(int $stockgare_total, int $sf_minutes, int $time_budget_h): void {
@@ -162,40 +162,41 @@ class TimelineBuilder {
 		$cold_hours = max(8, (int) floor($available_for_cold / 60));
 
 		if ($anspring_rest > 0) {
-			$this->step('Anspringzeit (warm)', $anspring_rest, 'Teig abgedeckt bei Raumtemperatur anspringen lassen, bevor er in den Kühlschrank kommt.');
+			$this->step(Lang::get('tl_anspring'), $anspring_rest, Lang::get('tl_anspring_desc'));
 		}
-		$this->step('Stockgare im Kühlschrank', $cold_hours * 60, sprintf('Teig abgedeckt %d Stunden im Kühlschrank (4–5°C) gehen lassen.', $cold_hours));
-		$this->step('Akklimatisieren', $akklim_min, 'Teig aus dem Kühlschrank nehmen und 30 Minuten bei Raumtemperatur akklimatisieren lassen.');
+		$this->step(Lang::get('tl_cold_stock'), $cold_hours * 60, Lang::get('tl_cold_stock_desc', $cold_hours));
+		$this->step(Lang::get('tl_acclimatize'), $akklim_min, Lang::get('tl_acclimatize_desc'));
 		$this->add_forming();
-		$this->step('Stückgare (warm)', $stueckgare_min, 'Geformtes Brot abdecken und mind. 2 Stunden bei Raumtemperatur gehen lassen. Fingertest: Delle soll langsam zurückgehen.');
+		$this->step(Lang::get('tl_stueckgare_warm'), $stueckgare_min, Lang::get('tl_stueckgare_warm_desc'));
 	}
 
 	private function build_cold_proof(int $stockgare_total, int $sf_minutes, int $time_budget_h): void {
 		$rest = max(0, $stockgare_total - $sf_minutes);
 		if ($rest > 0) {
-			$this->step('Restliche Stockgare', $rest, 'Teig abdecken und gehen lassen.');
+			$this->step(Lang::get('tl_stockgare_rest'), $rest, Lang::get('tl_stockgare_desc'));
 		}
-		$this->step('Formen', 10, 'Teig zur Mitte falten, umdrehen, zu Kugel formen. In bemehltes Gärkörbchen legen.');
+		$this->step(Lang::get('tl_form'), 10, Lang::get('tl_form_cold_desc'));
 		$cold_hours = max(8, $time_budget_h - 6);
-		$this->step('Stückgare im Kühlschrank', $cold_hours * 60, sprintf('Geformtes Brot abgedeckt mind. %d Stunden im Kühlschrank lassen. Direkt aus dem Kühlschrank backen.', $cold_hours));
+		$this->step(Lang::get('tl_cold_proof'), $cold_hours * 60, Lang::get('tl_cold_proof_desc', $cold_hours));
 	}
 
 	private function add_baking(): void {
 		$ctx = $this->ctx;
 		$preheat = $this->baking->get_preheat($ctx);
 		$preheat_start = max(0, $this->t - $preheat * 60);
-		$preheat_desc = $ctx->input['backMethod'] === 'pot'
-			? 'Topf mit im Ofen mit aufheizen (30–45 Min).'
-			: 'Pizzastein/Backstahl 45–60 Min vorheizen.';
+		$method = $ctx->input['backMethod'];
+		$preheat_desc = $method === 'pot'
+			? Lang::get('tl_preheat_pot_desc')
+			: ($method === 'tray' ? Lang::get('tl_preheat_tray_desc') : Lang::get('tl_preheat_other_desc'));
 
-		$this->steps[] = array('time' => $preheat_start, 'label' => 'Ofen vorheizen', 'duration' => $preheat, 'desc' => $preheat_desc);
+		$this->steps[] = array('time' => $preheat_start, 'label' => Lang::get('tl_preheat'), 'duration' => $preheat, 'desc' => $preheat_desc);
 		$bake_min = $this->baking->get_duration($ctx);
-		$this->step('Backen', $bake_min, 'Brot einschießen. Mit Schwaden/Dampf starten, dann Temperatur reduzieren.');
+		$this->step(Lang::get('tl_bake'), $bake_min, Lang::get('tl_bake_desc'));
 		$this->steps[] = array(
-			'time' => $this->t, 'label' => 'Auskühlen', 'duration' => 45,
+			'time' => $this->t, 'label' => Lang::get('tl_cool'), 'duration' => 45,
 			'desc' => $ctx->rye_share >= 75
-				? 'Mind. 24 Stunden liegen lassen, bevor angeschnitten wird!'
-				: '30–60 Min auf Gitter auskühlen lassen.',
+				? Lang::get('tl_cool_rye_desc')
+				: Lang::get('tl_cool_desc'),
 		);
 	}
 
@@ -269,8 +270,8 @@ class TimelineBuilder {
 
 	private function add_forming(): void {
 		$desc = $this->ctx->rye_share >= 75
-			? 'Hände und Fläche anfeuchten. Teig vorsichtig zu Laib oder Kugel formen. In bemehltes Gärkörbchen legen.'
-			: 'Teig zur Mitte falten, umdrehen, zu Kugel formen. Spannung auf der Oberfläche aufbauen.';
-		$this->step('Formen', 10, $desc);
+			? Lang::get('tl_form_rye_desc')
+			: Lang::get('tl_form_desc');
+		$this->step(Lang::get('tl_form'), 10, $desc);
 	}
 }

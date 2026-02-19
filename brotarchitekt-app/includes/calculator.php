@@ -32,8 +32,8 @@ class Calculator {
 	private function get_recipe_name(RecipeContext $ctx): string {
 		$h = (int) $ctx->input['timeBudget'];
 		$speed = '';
-		if ($h < 8) $speed = 'Schnelles';
-		elseif ($h > 16) $speed = 'Langsam geführtes';
+		if ($h < 8) $speed = Lang::get('recipe_fast');
+		elseif ($h > 16) $speed = Lang::get('recipe_slow');
 
 		$main = array_filter((array) $ctx->input['mainFlours']);
 		$flour_names = array();
@@ -46,9 +46,9 @@ class Calculator {
 
 		$flour_part = count($flour_names) === 1
 			? preg_replace('/\s+\d+$/', '', $flour_names[0])
-			: 'Mischbrot';
+			: Lang::get('recipe_mixed');
 
-		$name = trim($speed . ' ' . $flour_part . '-brot');
+		$name = trim($speed . ' ' . $flour_part . Lang::get('recipe_bread_suffix'));
 
 		$extras = (array) $ctx->input['extras'];
 		if (!empty($extras)) {
@@ -56,13 +56,18 @@ class Calculator {
 			foreach (BrotarchitektData::get_extras() as $key => $data) {
 				if (in_array($key, $extras, true)) $extra_names[] = $data['name'];
 			}
-			$name .= ' mit ' . implode(' und ', $extra_names);
+			$name .= ' ' . Lang::get('recipe_with') . ' ' . implode(' ' . Lang::get('recipe_and') . ' ', $extra_names);
 		}
 		return $name;
 	}
 
 	private function get_recipe_meta(RecipeContext $ctx, IngredientsBuilder $ib): array {
-		$back_labels = array('pot' => 'Topf', 'stone' => 'Pizzastein', 'steel' => 'Backstahl');
+		$back_labels = array(
+			'pot'   => Lang::get('method_pot_short'),
+			'stone' => Lang::get('method_stone_short'),
+			'steel' => Lang::get('method_steel_short'),
+			'tray'  => Lang::get('method_tray_short'),
+		);
 		$back = $ctx->input['backMethod'];
 		return array(
 			'level'  => $ctx->level_info['label'],
@@ -83,10 +88,10 @@ class Calculator {
 	private function get_warnings(RecipeContext $ctx): array {
 		$w = array();
 		if ((int) $ctx->input['timeBudget'] < 8 && $ctx->input['leavening'] !== 'yeast') {
-			$w[] = 'Dein Sauerteig muss bereits einsatzbereit sein.';
+			$w[] = Lang::get('warn_sourdough_ready');
 		}
 		if ($ctx->rye_share >= 75) {
-			$w[] = 'Roggenbrot mind. 24 Stunden vor dem Anschneiden ruhen lassen.';
+			$w[] = Lang::get('warn_rye_rest');
 		}
 		return $w;
 	}

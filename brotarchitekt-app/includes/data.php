@@ -6,50 +6,50 @@ class BrotarchitektData {
 	public static function get_flours(): array {
 		return array(
 			'wheat' => array(
-				'name'       => 'Weizen',
-				'types'      => array('550', '812', '1050', '1600', 'Vollkorn'),
+				'name'       => Lang::get('flour_wheat'),
+				'types'      => array('550', '812', '1050', '1600', Lang::get('flour_type_vollkorn')),
 				'category'   => 'standard',
 				'level_main' => 1,
 				'level_side' => 1,
 			),
 			'rye' => array(
-				'name'       => 'Roggen',
-				'types'      => array('997', '1150', '1370', '1740', 'Vollkorn'),
+				'name'       => Lang::get('flour_rye'),
+				'types'      => array('997', '1150', '1370', '1740', Lang::get('flour_type_vollkorn')),
 				'category'   => 'standard',
 				'level_main' => 1,
 				'level_side' => 1,
 			),
 			'spelt' => array(
-				'name'       => 'Dinkel',
-				'types'      => array('630', '812', '1050', 'Vollkorn'),
+				'name'       => Lang::get('flour_spelt'),
+				'types'      => array('630', '812', '1050', Lang::get('flour_type_vollkorn')),
 				'category'   => 'standard',
 				'level_main' => 1,
 				'level_side' => 1,
 			),
 			'semola' => array(
-				'name'       => 'Semola (Hartweizen)',
-				'types'      => array('Hartweizen'),
+				'name'       => Lang::get('flour_semola'),
+				'types'      => array(Lang::get('flour_type_hartweizen')),
 				'category'   => 'standard',
 				'level_main' => 1,
 				'level_side' => 1,
 			),
 			'emmer' => array(
-				'name'       => 'Emmer',
-				'types'      => array('812', 'Vollkorn'),
+				'name'       => Lang::get('flour_emmer'),
+				'types'      => array('812', Lang::get('flour_type_vollkorn')),
 				'category'   => 'ancient',
 				'level_main' => 4,
 				'level_side' => 3,
 			),
 			'einkorn' => array(
-				'name'       => 'Einkorn',
-				'types'      => array('812', 'Vollkorn'),
+				'name'       => Lang::get('flour_einkorn'),
+				'types'      => array('812', Lang::get('flour_type_vollkorn')),
 				'category'   => 'ancient',
 				'level_main' => 4,
 				'level_side' => 3,
 			),
 			'kamut' => array(
-				'name'       => 'Kamut/Khorasan',
-				'types'      => array('Vollkorn'),
+				'name'       => Lang::get('flour_kamut'),
+				'types'      => array(Lang::get('flour_type_vollkorn')),
 				'category'   => 'ancient',
 				'level_main' => 4,
 				'level_side' => 3,
@@ -59,32 +59,32 @@ class BrotarchitektData {
 
 	public static function get_extras(): array {
 		return array(
-			'sunflower' => array('name' => 'Sonnenblumenkerne', 'ratio' => 0.75, 'ta_raise' => false, 'category' => 'kern'),
-			'pumpkin'   => array('name' => 'Kürbiskerne', 'ratio' => 0.75, 'ta_raise' => false, 'category' => 'kern'),
-			'sesame'    => array('name' => 'Sesam', 'ratio' => 0.75, 'ta_raise' => false, 'category' => 'kern'),
-			'linseed'   => array('name' => 'Leinsamen', 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
-			'oatmeal'   => array('name' => 'Haferflocken', 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
-			'old_bread' => array('name' => 'Altbrot', 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
-			'grist'     => array('name' => 'Schrot (Weizen/Roggen)', 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
+			'sunflower' => array('name' => Lang::get('extra_sunflower'), 'ratio' => 0.75, 'ta_raise' => false, 'category' => 'kern'),
+			'pumpkin'   => array('name' => Lang::get('extra_pumpkin'), 'ratio' => 0.75, 'ta_raise' => false, 'category' => 'kern'),
+			'sesame'    => array('name' => Lang::get('extra_sesame'), 'ratio' => 0.75, 'ta_raise' => false, 'category' => 'kern'),
+			'linseed'   => array('name' => Lang::get('extra_linseed'), 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
+			'oatmeal'   => array('name' => Lang::get('extra_oatmeal'), 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
+			'old_bread' => array('name' => Lang::get('extra_old_bread'), 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
+			'grist'     => array('name' => Lang::get('extra_grist'), 'ratio' => 4, 'ta_raise' => true, 'category' => 'ta_raise'),
 		);
 	}
 
 	public static function get_level_info(): array {
 		return array(
-			1 => array('label' => 'Einsteiger', 'main_flours' => 1, 'side_flours' => 0, 'ancient_main' => false, 'ancient_side' => false, 'ta_base' => 168, 'ta_max' => 173, 'max_extras' => 1, 'recommended_back' => 'pot'),
-			2 => array('label' => 'Grundkenntnisse', 'main_flours' => 1, 'side_flours' => 1, 'ancient_main' => false, 'ancient_side' => false, 'ta_base' => 170, 'ta_max' => 175, 'max_extras' => 2, 'recommended_back' => 'pot'),
-			3 => array('label' => 'Fortgeschritten', 'main_flours' => 1, 'side_flours' => 2, 'ancient_main' => false, 'ancient_side' => true, 'ta_base' => 173, 'ta_max' => 180, 'max_extras' => 3, 'recommended_back' => null),
-			4 => array('label' => 'Erfahren', 'main_flours' => 2, 'side_flours' => 3, 'ancient_main' => true, 'ancient_side' => true, 'ta_base' => 176, 'ta_max' => 185, 'max_extras' => 5, 'recommended_back' => 'stone'),
-			5 => array('label' => 'Profi', 'main_flours' => 3, 'side_flours' => 3, 'ancient_main' => true, 'ancient_side' => true, 'ta_base' => 180, 'ta_max' => 190, 'max_extras' => 5, 'recommended_back' => 'steel'),
+			1 => array('label' => Lang::get('level_1'), 'main_flours' => 1, 'side_flours' => 0, 'ancient_main' => false, 'ancient_side' => false, 'ta_base' => 168, 'ta_max' => 173, 'max_extras' => 1, 'recommended_back' => 'pot'),
+			2 => array('label' => Lang::get('level_2'), 'main_flours' => 1, 'side_flours' => 1, 'ancient_main' => false, 'ancient_side' => false, 'ta_base' => 170, 'ta_max' => 175, 'max_extras' => 2, 'recommended_back' => 'pot'),
+			3 => array('label' => Lang::get('level_3'), 'main_flours' => 1, 'side_flours' => 2, 'ancient_main' => false, 'ancient_side' => true, 'ta_base' => 173, 'ta_max' => 180, 'max_extras' => 3, 'recommended_back' => null),
+			4 => array('label' => Lang::get('level_4'), 'main_flours' => 2, 'side_flours' => 3, 'ancient_main' => true, 'ancient_side' => true, 'ta_base' => 176, 'ta_max' => 185, 'max_extras' => 5, 'recommended_back' => 'stone'),
+			5 => array('label' => Lang::get('level_5'), 'main_flours' => 3, 'side_flours' => 3, 'ancient_main' => true, 'ancient_side' => true, 'ta_base' => 180, 'ta_max' => 190, 'max_extras' => 5, 'recommended_back' => 'steel'),
 		);
 	}
 
 	public static function get_sourdough_types(): array {
 		return array(
-			'rye'           => array('name' => 'Roggensauer', 'ta' => 200, 'flour_grain' => 'rye'),
-			'wheat'         => array('name' => 'Weizensauer', 'ta' => 200, 'flour_grain' => 'wheat'),
-			'spelt'         => array('name' => 'Dinkelsauer', 'ta' => 200, 'flour_grain' => 'spelt'),
-			'lievito_madre' => array('name' => 'Lievito Madre', 'ta' => 150, 'flour_grain' => 'wheat'),
+			'rye'           => array('name' => Lang::get('sourdough_rye'), 'ta' => 200, 'flour_grain' => 'rye'),
+			'wheat'         => array('name' => Lang::get('sourdough_wheat'), 'ta' => 200, 'flour_grain' => 'wheat'),
+			'spelt'         => array('name' => Lang::get('sourdough_spelt'), 'ta' => 200, 'flour_grain' => 'spelt'),
+			'lievito_madre' => array('name' => Lang::get('sourdough_lievito'), 'ta' => 150, 'flour_grain' => 'wheat'),
 		);
 	}
 

@@ -10,19 +10,21 @@ class BakingProfile {
 			'pot'   => $is_rye ? array(45, 55, 65) : array(40, 50, 60),
 			'stone' => $is_rye ? array(45, 55, 65) : array(35, 45, 55),
 			'steel' => $is_rye ? array(45, 55, 65) : array(35, 45, 55),
+			'tray'  => $is_rye ? array(50, 60, 70) : array(45, 55, 65),
 		);
 		$method = $ctx->input['backMethod'];
 		$key = isset($durations[$method]) ? $method : 'pot';
 		$duration = $durations[$key][$slot];
-		$ctx->log('Baking', 'F.8: Backdauer', 'Methode ' . $key . ', Roggen ' . ($is_rye ? '>=50%' : '<50%') . ', Mehl ' . $ctx->total_flour . 'g (Slot ' . $slot . ') → ' . $duration . ' min');
+		$ctx->log('Baking', 'F.8: Backdauer', 'Methode ' . $key . ', Roggen ' . ($is_rye ? '>=50%' : '<50%') . ', ' . Lang::get('ing_flour') . ' ' . $ctx->total_flour . 'g (Slot ' . $slot . ') → ' . $duration . ' min');
 		return $duration;
 	}
 
 	public function get_preheat(RecipeContext $ctx): int {
 		$method = $ctx->input['backMethod'];
-		if ($method === 'pot') { $ctx->log('Baking', 'F.7: Vorheizzeit', 'Topf → 40 min'); return 40; }
-		if ($method === 'steel') { $ctx->log('Baking', 'F.7: Vorheizzeit', 'Backstahl → 35 min'); return 35; }
-		$ctx->log('Baking', 'F.7: Vorheizzeit', 'Pizzastein → 50 min');
+		if ($method === 'pot') { $ctx->log('Baking', 'F.7: Vorheizzeit', Lang::get('method_pot_short') . ' → 40 min'); return 40; }
+		if ($method === 'steel') { $ctx->log('Baking', 'F.7: Vorheizzeit', Lang::get('method_steel_short') . ' → 35 min'); return 35; }
+		if ($method === 'tray') { $ctx->log('Baking', 'F.7: Vorheizzeit', Lang::get('method_tray_short') . ' → 20 min'); return 20; }
+		$ctx->log('Baking', 'F.7: Vorheizzeit', Lang::get('method_stone_short') . ' → 50 min');
 		return 50;
 	}
 
@@ -34,14 +36,17 @@ class BakingProfile {
 		$duration = $this->get_duration($ctx);
 
 		if ($method === 'pot') {
-			$text = sprintf('Topf mit Deckel %d°C: 25 Min. Dann Deckel abnehmen, %d°C: weitere %d Min. (je nach Mehlmenge).', $temp1, $temp2, $duration - 25);
+			$text = Lang::get('bake_pot_template', $temp1, $temp2, $duration - 25);
+		} elseif ($method === 'tray') {
+			$schwaden_min = $is_rye ? 5 : 10;
+			$text = Lang::get('bake_tray_template', $temp1, $schwaden_min, $temp2, $duration - $schwaden_min);
 		} else {
 			$schwaden_min = $is_rye ? 5 : 10;
-			$text = sprintf('Mit Schwaden/Dampf %d°C: %d Min. Dann Dampf ablassen, %d°C: weitere %d Min.', $temp1, $schwaden_min, $temp2, $duration - $schwaden_min);
+			$text = Lang::get('bake_other_template', $temp1, $schwaden_min, $temp2, $duration - $schwaden_min);
 		}
 
 		if ($ctx->rye_share >= 75) {
-			$text .= ' Roggenbrot mind. 24 Stunden ruhen lassen vor dem Anschneiden!';
+			$text .= Lang::get('bake_rye_note');
 		}
 		return $text;
 	}

@@ -17,7 +17,7 @@ class IngredientsBuilder {
 		$extras_weight = $this->get_extras_weight($ctx);
 		$salt_base = $ctx->total_flour + $extras_weight;
 		$salt = round($salt_base * 0.02, 0);
-		$ctx->log('Ingredients', 'Salz', 'Salz: 2% von (' . $ctx->total_flour . 'g Mehl + ' . $extras_weight . 'g Extras = ' . $salt_base . 'g) = ' . $salt . 'g');
+		$ctx->log('Ingredients', Lang::get('ing_salt'), Lang::get('ing_salt') . ': 2% von (' . $ctx->total_flour . 'g ' . Lang::get('ing_flour') . ' + ' . $extras_weight . 'g Extras = ' . $salt_base . 'g) = ' . $salt . 'g');
 		$water_main = $ctx->water_total;
 		$groups = array();
 
@@ -35,13 +35,13 @@ class IngredientsBuilder {
 			$sourdough_water = round($sourdough_flour * (($st['ta'] - 100) / 100), 0);
 			$water_main -= $sourdough_water;
 
-			$ctx->log('Ingredients', 'C.1: Sauerteig', 'ST-Mehl ' . $sourdough_flour . 'g (' . $ctx->sourdough_pct . '% von ' . $ctx->total_flour . 'g), ST-Wasser ' . $sourdough_water . 'g (TA ' . $st['ta'] . '), Hauptwasser -' . $sourdough_water . 'g');
+			$ctx->log('Ingredients', 'C.1: ' . Lang::get('group_sourdough'), 'ST-' . Lang::get('ing_flour') . ' ' . $sourdough_flour . 'g (' . $ctx->sourdough_pct . '% von ' . $ctx->total_flour . 'g), ST-' . Lang::get('ing_water') . ' ' . $sourdough_water . 'g (TA ' . $st['ta'] . '), Haupt' . Lang::get('ing_water') . ' -' . $sourdough_water . 'g');
 
 			$st_total_g = $sourdough_flour + $sourdough_water;
 			$groups['sourdough'] = array(
-				'label' => 'Sauerteig',
+				'label' => Lang::get('group_sourdough'),
 				'items' => array(
-					array('name' => 'Sauerteig (Anstellgut + Mehl + Wasser)', 'amount' => $st_total_g, 'unit' => 'g', 'percent' => $this->pct($st_total_g)),
+					array('name' => Lang::get('ing_sourdough_full'), 'amount' => $st_total_g, 'unit' => 'g', 'percent' => $this->pct($st_total_g)),
 				),
 			);
 		}
@@ -56,13 +56,13 @@ class IngredientsBuilder {
 			$water_main -= $kochstueck_water;
 			$this->subtract_flour_from_ancient($flour_amounts, $kochstueck_mehl);
 
-			$ctx->log('Ingredients', 'E.1: Kochstueck', 'Mehl ' . $kochstueck_mehl . 'g (4%), Wasser ' . $kochstueck_water . 'g (1:5), Hauptwasser -' . $kochstueck_water . 'g');
+			$ctx->log('Ingredients', 'E.1: ' . Lang::get('group_kochstueck'), Lang::get('ing_flour') . ' ' . $kochstueck_mehl . 'g (4%), ' . Lang::get('ing_water') . ' ' . $kochstueck_water . 'g (1:5), Haupt' . Lang::get('ing_water') . ' -' . $kochstueck_water . 'g');
 
 			$groups['kochstueck'] = array(
-				'label' => 'Kochstück (Tangzhong)',
+				'label' => Lang::get('group_kochstueck'),
 				'items' => array(
-					array('name' => 'Mehl', 'amount' => $kochstueck_mehl, 'unit' => 'g', 'percent' => $this->pct($kochstueck_mehl)),
-					array('name' => 'Wasser', 'amount' => $kochstueck_water, 'unit' => 'g', 'percent' => $this->pct($kochstueck_water)),
+					array('name' => Lang::get('ing_flour'), 'amount' => $kochstueck_mehl, 'unit' => 'g', 'percent' => $this->pct($kochstueck_mehl)),
+					array('name' => Lang::get('ing_water'), 'amount' => $kochstueck_water, 'unit' => 'g', 'percent' => $this->pct($kochstueck_water)),
 				),
 			);
 		}
@@ -87,7 +87,7 @@ class IngredientsBuilder {
 		$water_main = $bruehstueck_items['water_main'];
 
 		if (!empty($bruehstueck_items['items'])) {
-			$groups['bruehstueck'] = array('label' => 'Brühstück', 'items' => $bruehstueck_items['items']);
+			$groups['bruehstueck'] = array('label' => Lang::get('group_bruehstueck'), 'items' => $bruehstueck_items['items']);
 		}
 
 		// Hauptteig
@@ -95,20 +95,20 @@ class IngredientsBuilder {
 		$yeast_total = $ctx->yeast_pct + $ctx->beginner_yeast_pct;
 		$hefe_g = round($ctx->total_flour * $yeast_total / 100, 1);
 
-		$ctx->log('Ingredients', 'Hauptteig', 'Restwasser ' . $water_main . 'g, Hefe ' . $hefe_g . 'g (' . $yeast_total . '%), Salz ' . $salt . 'g (2%)');
+		$ctx->log('Ingredients', Lang::get('group_main'), 'Rest' . Lang::get('ing_water') . ' ' . $water_main . 'g, ' . Lang::get('ing_yeast') . ' ' . $hefe_g . 'g (' . $yeast_total . '%), ' . Lang::get('ing_salt') . ' ' . $salt . 'g (2%)');
 
 		$main_items = array();
 		foreach ($flour_amounts as $id => $g) {
 			if ($g <= 0) continue;
 			$main_items[] = array('name' => BrotarchitektData::get_flour_label($id), 'amount' => $g, 'unit' => 'g', 'percent' => $this->pct($g));
 		}
-		$main_items[] = array('name' => 'Wasser', 'amount' => $water_main, 'unit' => 'g', 'percent' => $this->pct($water_main));
+		$main_items[] = array('name' => Lang::get('ing_water'), 'amount' => $water_main, 'unit' => 'g', 'percent' => $this->pct($water_main));
 		if ($hefe_g > 0) {
-			$main_items[] = array('name' => 'Hefe (frisch)', 'amount' => $hefe_g, 'unit' => 'g', 'percent' => $this->pct($hefe_g));
+			$main_items[] = array('name' => Lang::get('ing_yeast'), 'amount' => $hefe_g, 'unit' => 'g', 'percent' => $this->pct($hefe_g));
 		}
-		$main_items[] = array('name' => 'Salz', 'amount' => $salt, 'unit' => 'g', 'percent' => $this->pct($salt));
+		$main_items[] = array('name' => Lang::get('ing_salt'), 'amount' => $salt, 'unit' => 'g', 'percent' => $this->pct($salt));
 
-		$groups['main'] = array('label' => 'Hauptteig', 'items' => $main_items);
+		$groups['main'] = array('label' => Lang::get('group_main'), 'items' => $main_items);
 
 		return $groups;
 	}
@@ -166,6 +166,8 @@ class IngredientsBuilder {
 		}
 		$extras_scale = $total_pct > 30 ? 30 / $total_pct : 1.0;
 
+		$bruehstueck_water_total = 0;
+
 		foreach ($extras as $eid) {
 			if (!isset($extra_data[$eid])) continue;
 			$e = $extra_data[$eid];
@@ -178,20 +180,26 @@ class IngredientsBuilder {
 
 			if ($is_quick) {
 				if ($e['category'] === 'kern') {
-					$items[] = array('name' => $e['name'] . ' (trocken einarbeiten)', 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
+					$items[] = array('name' => $e['name'] . Lang::get('ing_dry_suffix'), 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
 				} else {
 					$water_main += $amount;
-					$items[] = array('name' => $e['name'] . ' (mit Mehl einarbeiten)', 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
-					$items[] = array('name' => 'Wasser (extra)', 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
+					$items[] = array('name' => $e['name'] . Lang::get('ing_flour_suffix'), 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
+					$bruehstueck_water_total += $amount;
 				}
 			} elseif ($ctx->bruehstueck_available) {
 				$water_extra = round($amount * $e['ratio'], 0);
 				$water_main -= $water_extra;
 				$items[] = array('name' => $e['name'], 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
-				$items[] = array('name' => 'Wasser (heiß)', 'amount' => $water_extra, 'unit' => 'g', 'percent' => $this->pct($water_extra));
+				$bruehstueck_water_total += $water_extra;
 			} else {
-				$items[] = array('name' => $e['name'] . ' (trocken einarbeiten)', 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
+				$items[] = array('name' => $e['name'] . Lang::get('ing_dry_suffix'), 'amount' => $amount, 'unit' => 'g', 'percent' => $this->pct($amount));
 			}
+		}
+
+		// Wasser einmal zusammengefasst am Ende auflisten
+		if ($bruehstueck_water_total > 0) {
+			$water_label = $is_quick ? Lang::get('ing_water_extra') : Lang::get('ing_water_hot');
+			$items[] = array('name' => $water_label, 'amount' => $bruehstueck_water_total, 'unit' => 'g', 'percent' => $this->pct($bruehstueck_water_total));
 		}
 
 		return array('items' => $items, 'water_main' => $water_main);

@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 	exit;
 }
 
+require_once __DIR__ . '/includes/lang.php';
 require_once __DIR__ . '/includes/data.php';
 require_once __DIR__ . '/includes/recipe-context.php';
 require_once __DIR__ . '/includes/leaven-calculator.php';
@@ -29,6 +30,8 @@ require_once __DIR__ . '/includes/ingredients-builder.php';
 require_once __DIR__ . '/includes/baking-profile.php';
 require_once __DIR__ . '/includes/timeline-builder.php';
 require_once __DIR__ . '/includes/calculator.php';
+
+Lang::load('de');
 
 try {
 	$body = file_get_contents('php://input');

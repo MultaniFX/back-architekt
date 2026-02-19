@@ -32,29 +32,43 @@ class RecipeContext {
 	}
 
 	public function get_input_summary(): array {
-		$leavening_labels = array('yeast' => 'Nur Hefe', 'sourdough' => 'Nur Sauerteig', 'hybrid' => 'Hybrid (Hefe + Sauerteig)');
-		$st_labels = array('rye' => 'Roggensauer', 'wheat' => 'Weizensauer', 'spelt' => 'Dinkelsauer', 'lievito_madre' => 'Lievito Madre');
-		$method_labels = array('pot' => 'Topf', 'stone' => 'Pizzastein', 'steel' => 'Backstahl');
+		$leavening_labels = array(
+			'yeast'     => Lang::get('summary_leav_yeast'),
+			'sourdough' => Lang::get('summary_leav_sourdough'),
+			'hybrid'    => Lang::get('summary_leav_hybrid'),
+		);
+		$st_labels = array(
+			'rye'           => Lang::get('sourdough_rye'),
+			'wheat'         => Lang::get('sourdough_wheat'),
+			'spelt'         => Lang::get('sourdough_spelt'),
+			'lievito_madre' => Lang::get('sourdough_lievito'),
+		);
+		$method_labels = array(
+			'pot'   => Lang::get('method_pot_short'),
+			'stone' => Lang::get('method_stone_short'),
+			'steel' => Lang::get('method_steel_short'),
+			'tray'  => Lang::get('method_tray_short'),
+		);
 
 		$main = array_filter((array) $this->input['mainFlours']);
 		$side = array_filter((array) $this->input['sideFlours']);
 		$extras = (array) $this->input['extras'];
 
 		$summary = array();
-		$summary['Level']       = $this->level . ' (' . $this->level_info['label'] . ')';
-		$summary['Zeitbudget']  = $this->input['timeBudget'] . 'h';
-		$summary['Mehlmenge']   = $this->total_flour . 'g';
-		$summary['Hauptmehle']  = !empty($main) ? implode(', ', array_map(fn($id) => BrotarchitektData::get_flour_label($id), $main)) : '(keine)';
-		$summary['Nebenmehle']  = !empty($side) ? implode(', ', array_map(fn($id) => BrotarchitektData::get_flour_label($id), $side)) : '(keine)';
-		$summary['Triebmittel'] = $leavening_labels[$this->input['leavening']] ?? $this->input['leavening'];
+		$summary[Lang::get('summary_level')]       = $this->level . ' (' . $this->level_info['label'] . ')';
+		$summary[Lang::get('summary_time')]         = $this->input['timeBudget'] . 'h';
+		$summary[Lang::get('summary_flour_amount')] = $this->total_flour . 'g';
+		$summary[Lang::get('summary_main_flours')]  = !empty($main) ? implode(', ', array_map(fn($id) => BrotarchitektData::get_flour_label($id), $main)) : Lang::get('summary_none');
+		$summary[Lang::get('summary_side_flours')]  = !empty($side) ? implode(', ', array_map(fn($id) => BrotarchitektData::get_flour_label($id), $side)) : Lang::get('summary_none');
+		$summary[Lang::get('summary_leavening')]    = $leavening_labels[$this->input['leavening']] ?? $this->input['leavening'];
 		if ($this->input['leavening'] !== 'yeast') {
-			$summary['ST-Typ']    = $st_labels[$this->input['sourdoughType']] ?? $this->input['sourdoughType'];
-			$summary['ST bereit'] = $this->input['sourdoughReady'] === 'yes' ? 'Ja' : 'Nein';
+			$summary[Lang::get('summary_st_type')]  = $st_labels[$this->input['sourdoughType']] ?? $this->input['sourdoughType'];
+			$summary[Lang::get('summary_st_ready')] = $this->input['sourdoughReady'] === 'yes' ? Lang::get('summary_yes') : Lang::get('summary_no');
 		}
-		$summary['Extras']      = !empty($extras) ? implode(', ', $extras) : '(keine)';
-		$summary['Backmethode'] = $method_labels[$this->input['backMethod']] ?? $this->input['backMethod'];
+		$summary[Lang::get('summary_extras')]       = !empty($extras) ? implode(', ', $extras) : Lang::get('summary_none');
+		$summary[Lang::get('summary_method')]       = $method_labels[$this->input['backMethod']] ?? $this->input['backMethod'];
 		if (!empty($this->input['bakeFromFridge'])) {
-			$summary['Kühlschrank'] = 'Direkt aus Kühlschrank backen';
+			$summary[Lang::get('summary_fridge')]   = Lang::get('summary_fridge_direct');
 		}
 		return $summary;
 	}
