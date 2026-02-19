@@ -18,61 +18,8 @@ $levelInfo = json_encode(BrotarchitektData::get_level_info_for_js(), JSON_UNESCA
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Der Brot-Architekt</title>
 	<script src="https://cdn.tailwindcss.com"></script>
-	<script>
-		tailwind.config = {
-			theme: {
-				extend: {
-					colors: {
-						bread: {
-							50:  '#faf7f2',
-							100: '#f5f0e8',
-							200: '#ede4d4',
-							300: '#e0d1b8',
-							400: '#d4b88e',
-							500: '#c87137',
-							600: '#b5622e',
-							700: '#a05228',
-							800: '#7a3f20',
-							900: '#5d3419',
-						},
-						crust: {
-							DEFAULT: '#E35C3C',
-							dark:    '#c94e32',
-							light:   '#f0826a',
-						},
-					},
-					fontFamily: {
-						serif: ['Georgia', 'Cambria', '"Times New Roman"', 'serif'],
-					},
-				},
-			},
-		}
-	</script>
-	<style>
-		/* Slider styles */
-		input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 10px; border-radius: 5px; background: #e0d1b8; outline: none; }
-		input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #E35C3C; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(44,34,24,0.2); cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
-		input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); box-shadow: 0 3px 12px rgba(44,34,24,0.3); }
-		input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius: 50%; background: #E35C3C; border: 3px solid #fff; box-shadow: 0 2px 8px rgba(44,34,24,0.2); cursor: pointer; }
-		input[type="range"]::-moz-range-track { height: 10px; border-radius: 5px; background: #e0d1b8; }
-
-		/* Toggle switch */
-		.toggle-switch { position: relative; display: inline-block; width: 48px; height: 26px; }
-		.toggle-switch input { opacity: 0; width: 0; height: 0; }
-		.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 26px; transition: 0.3s; }
-		.toggle-slider:before { content: ""; position: absolute; height: 20px; width: 20px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
-		.toggle-switch input:checked + .toggle-slider { background: #E35C3C; }
-		.toggle-switch input:checked + .toggle-slider:before { transform: translateX(22px); }
-
-		/* Print */
-		@media print {
-			.no-print { display: none !important; }
-			body { background: white !important; }
-		}
-
-		/* Smooth transitions */
-		.card-transition { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
-	</style>
+	<script src="assets/js/tailwind.config.js"></script>
+	<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-bread-50 min-h-screen font-serif text-gray-800">
 
